@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papan Interaktif Jeopardy LCC - Bank Soal Lengkap</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        jeopardy: {
+                            bg: '#0c1027',
+                            board: '#161b3d',
+                            card: '#1e295d',
+                            cardHover: '#2a387c',
+                            gold: '#fbbf24',
+                            accent: '#3b82f6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c1027;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a387c;
+            border-radius: 4px;
+        }
+        .glow-gold {
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+        }
+        .glow-blue {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-jeopardy-bg text-white font-sans min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <header class="bg-jeopardy-board border-b border-blue-900/50 p-4 sticky top-0 z-30 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-500 text-slate-900 p-2.5 rounded-xl font-black text-2xl shadow-lg">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black tracking-wide text-amber-400 uppercase">
+                        Jeopardy LCC SD - Bank Soal Lengkap
+                    </h1>
+                    <p class="text-xs text-blue-300">Variasi Acak Otomatis (Narasi Pengantar & Pertanyaan Integratif)</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats & Controls -->
+            <div class="flex items-center gap-4 bg-jeopardy-bg/80 px-4 py-2 rounded-2xl border border-blue-800/40">
+                <!-- Score Display -->
+                <div class="text-center px-3 border-r border-blue-800/60">
+                    <span class="text-xs text-blue-300 block uppercase font-semibold">Total Poin</span>
+                    <span id="scoreDisplay" class="text-2xl font-black text-amber-400 glow-gold">0</span>
+                </div>
+                
+                <!-- Completed Tracker -->
+                <div class="text-center px-3 border-r border-blue-800/60">
+                    <span class="text-xs text-blue-300 block uppercase font-semibold">Progres Soal</span>
+                    <span id="progressDisplay" class="text-lg font-bold text-blue-200">0 / 35</span>
+                </div>
+
+                <!-- Retry Queue Badge (Terkunci & Disabled sampai 35/35 Selesai) -->
+                <div id="retryBadgeContainer" class="text-center px-2">
+                    <button id="retryHeaderBtn" onclick="startRetryPhase()" disabled class="bg-red-500/10 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 opacity-50 cursor-not-allowed">
+                        <i class="fa-solid fa-lock text-red-400"></i>
+                        <span>Perlu Diulang: <strong id="retryCount" class="text-red-200">0</strong></span>
+                    </button>
+                </div>
+
+                <!-- Sound Control -->
+                <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 rounded-xl bg-blue-900/40 hover:bg-blue-800/60 text-blue-300 transition" title="Toggle Suara">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-lg"></i>
+                </button>
+
+                <!-- Reset & Reshuffle Button -->
+                <button onclick="confirmReset()" class="p-2.5 rounded-xl bg-red-900/30 hover:bg-red-800/50 text-red-400 transition" title="Riset & Kocok Ulang Soal">
+                    <i class="fa-solid fa-arrow-rotate-right text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 md:p-6 overflow-x-auto">
+        <div class="max-w-7xl mx-auto min-w-[1000px]">
+            <!-- Categories Header Grid (7 Columns) -->
+            <div class="grid grid-cols-7 gap-3 mb-3 text-center">
+                <div class="bg-gradient-to-b from-blue-700 to-blue-900 p-3 rounded-xl border border-blue-400/30 shadow-md">
+                    <span class="text-[10px] font-bold text-amber-300 block uppercase">Kategori 1</span>
+                    <h2 class="text-xs md:text-sm font-extrabold text-white leading-tight">Pancasila & Nilai</h2>
+                </div>
+                <div class="bg-gradient-to-b from-blue-700 to-blue-900 p-3 rounded-xl border border-blue-400/30 shadow-md">
+                    <span class="text-[10px] font-bold text-amber-300 block uppercase">Kategori 2</span>
+                    <h2 class="text-xs md:text-sm font-extrabold text-white leading-tight">Sejarah & Tokoh</h2>
+                </div>
+                <div class="bg-gradient-to-b from-blue-700 to-blue-900 p-3 rounded-xl border border-blue-400/30 shadow-md">
+                    <span class="text-[10px] font-bold text-amber-300 block uppercase">Kategori 3</span>
+                    <h2 class="text-xs md:text-sm font-extrabold text-white leading-tight">Proklamasi & Diplomasi</h2>
+                </div>
+                <div class="bg-gradient-to-b from-blue-700 to-blue-900 p-3 rounded-xl border border-blue-400/30 shadow-md">
+                    <span class="text-[10px] font-bold text-amber-300 block uppercase">Kategori 4</span>
+                    <h2 class="text-xs md:text-sm font-extrabold text-white leading-tight">UUD '45 & Negara</h2>
+                </div>
+                <div class="bg-gradient-to-b from-blue-700 to-blue-900 p-3 rounded-xl border border-blue-400/30 shadow-md">
+                    <span class="text-[10px] font-bold text-amber-300 block uppercase">Kategori 5</span>
+                    <h2 class="text-xs md:text-sm font-extrabold text-white leading-tight">Budaya & Geografi</h2>
+                </div>
+                <div class="bg-gradient-to-b from-blue-700 to-blue-900 p-3 rounded-xl border border-blue-400/30 shadow-md">
+                    <span class="text-[10px] font-bold text-amber-300 block uppercase">Kategori 6</span>
+                    <h2 class="text-xs md:text-sm font-extrabold text-white leading-tight">Alam & Bojonegoro</h2>
+                </div>
+                <div class="bg-gradient-to-b from-blue-700 to-blue-900 p-3 rounded-xl border border-blue-400/30 shadow-md">
+                    <span class="text-[10px] font-bold text-amber-300 block uppercase">Kategori 7</span>
+                    <h2 class="text-xs md:text-sm font-extrabold text-white leading-tight">Bela Negara & Global</h2>
+                </div>
+            </div>
+
+            <!-- Cards Grid (7 Columns x 5 Rows) -->
+            <div id="boardGrid" class="grid grid-cols-7 gap-3">
+                <!-- Dynamically Populated Cards -->
+            </div>
+        </div>
+    </main>
+
+    <div id="questionModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-jeopardy-board border-2 border-amber-400/50 w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="bg-jeopardy-card p-4 px-6 border-b border-blue-800/60 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span id="modalCatBadge" class="bg-blue-600 text-white font-bold text-xs px-3 py-1 rounded-full uppercase">Kategori</span>
+                    <span id="modalPointBadge" class="bg-amber-400 text-slate-950 font-black text-sm px-3 py-1 rounded-full glow-gold">100 POIN</span>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-2xl transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1">
+                
+                <!-- Unified Narrative & Question Box (No split headers) -->
+                <div class="bg-blue-950/60 border-l-4 border-amber-400 p-5 rounded-r-2xl shadow-inner">
+                    <p id="modalFullQuestion" class="text-base md:text-lg font-medium text-white leading-relaxed">
+                        <!-- Teks Utuh Narasi + Pertanyaan -->
+                    </p>
+                </div>
+
+                <!-- Options Grid -->
+                <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                    <!-- Dynamic Option Buttons -->
+                </div>
+
+                <!-- Feedback Banner -->
+                <div id="feedbackBox" class="p-4 rounded-2xl hidden border transition-all">
+                    <!-- Correct / Wrong Banner -->
+                </div>
+
+                <!-- Educator Discussion Note (Only visible after answering or during retry mode) -->
+                <div id="explanationBox" class="bg-emerald-950/50 border border-emerald-500/30 p-4 rounded-2xl hidden">
+                    <p class="text-xs text-emerald-400 font-bold uppercase mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-chalkboard-user"></i> Catatan Ulasan Pembimbing:
+                    </p>
+                    <p id="explanationText" class="text-sm text-emerald-100 leading-relaxed">
+                        <!-- Explanation Text -->
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Footer Controls -->
+            <div class="bg-jeopardy-card p-4 px-6 border-t border-blue-800/60 flex justify-between items-center">
+                <span class="text-xs text-blue-300" id="modeIndicator">Mode Permainan Utama</span>
+                <button id="modalActionBtn" onclick="closeModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl transition shadow-md">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="finishBar" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-amber-500 text-slate-950 font-bold px-6 py-3 rounded-full shadow-2xl z-40 flex items-center gap-4 border-2 border-amber-300 hidden">
+        <span><i class="fa-solid fa-flag-checkered text-lg"></i> Seluruh 35 soal di papan telah selesai dikerjakan!</span>
+        <button id="startRetryBarBtn" onclick="startRetryPhase()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 px-4 py-1.5 rounded-full text-sm font-extrabold transition flex items-center gap-2">
+            <span>Mulai Babak Pengulangan</span>
+            <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-20 right-5 bg-slate-900 border border-blue-500 text-white px-4 py-3 rounded-xl shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex items-center gap-3">
+        <i id="toastIcon" class="fa-solid fa-circle-info text-amber-400 text-lg"></i>
+        <span id="toastMessage" class="text-xs md:text-sm font-semibold">Pesan Toast</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-jeopardy-board border-t border-blue-900/50 py-3 text-center text-xs text-blue-400">
+        Media Pembinaan LCC SD - Papan Jeopardy Digital Interaktif &copy; 2026
+    </footer>
+
+    <script>
+        // Web Audio Synthesizer for Interactive Sound Effects
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.setValueAtTime(110, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-lg text-blue-300';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-lg text-red-400';
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = message;
+            if (type === 'warning') {
+                toastIcon.className = 'fa-solid fa-triangle-exclamation text-amber-400 text-lg';
+            } else if (type === 'error') {
+                toastIcon.className = 'fa-solid fa-circle-xmark text-red-400 text-lg';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-info text-blue-400 text-lg';
+            }
+
+            toast.classList.remove('translate-x-full');
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        /* 
+         * STREAMING_CHUNK:Populating Comprehensive Master Question Bank from Documents
+         * Seluruh soal dari dua dokumen referensi diintegrasikan dengan menggabungkan narasi dan pertanyaan.
+         */
+        const questionBank = [
+            // ==================== KATEGORI 1: Pancasila & Nilai ====================
+            {
+                id: 'q1-100-1', catId: 1, points: 100,
+                text: "Garuda Pancasila adalah lambang negara Indonesia yang penuh makna simbolik. Di bagian dadanya terdapat perisai dengan warna latar belakang yang khas. Warna pada lambang Pancasila yang melambangkan keabadian dan keteguhan alam semesta adalah warna...",
+                options: ["A. Merah", "B. Putih", "C. Hitam", "D. Kuning"],
+                correct: 2,
+                explanation: "Warna hitam pada lambang Garuda Pancasila melambangkan keabadian dan keteguhan alam semesta."
+            },
+            {
+                id: 'q1-100-2', catId: 1, points: 100,
+                text: "Pancasila disahkan sebagai dasar negara Republik Indonesia dalam sidang penting PPKI setelah proklamasi kemerdekaan dikumandangkan. Tanggal berapakah Pancasila secara resmi disahkan sebagai dasar negara Indonesia?",
+                options: ["A. 1 Juni 1945", "B. 22 Juni 1945", "C. 17 Agustus 1945", "D. 18 Agustus 1945"],
+                correct: 3,
+                explanation: "Pancasila resmi disahkan sebagai dasar negara pada tanggal 18 Agustus 1945 dalam sidang PPKI."
+            },
+            {
+                id: 'q1-100-3', catId: 1, points: 100,
+                text: "Hari lahir Pancasila diperingati untuk mengenang pidato Ir. Soekarno mengenai rumusan dasar negara di hadapan sidang BPUPKI. Setiap tanggal berapakah Hari Lahir Pancasila diperingati secara nasional?",
+                options: ["A. 1 Juni", "B. 22 Juni", "C. 17 Agustus", "D. 18 Agustus"],
+                correct: 0,
+                explanation: "Hari Lahir Pancasila diperingati setiap tanggal 1 Juni."
+            },
+            {
+                id: 'q1-200-1', catId: 1, points: 200,
+                text: "Ketika mendapati kawan sekelas sedang terbaring sakit di rumah sakit, siswa-siswi SD Merdeka berinisiatif menjenguk dan memberikan bantuan bersama. Sikap kepedulian sosial dengan menjenguk teman yang sedang sakit merupakan wujud pengamalan Pancasila sila ke-...",
+                options: ["A. Sila Ke-1", "B. Sila Ke-2", "C. Sila Ke-3", "D. Sila Ke-5"],
+                correct: 1,
+                explanation: "Sila Ke-2 (Kemanusiaan yang Adil dan Beradab) mengedepankan rasa kemanusiaan, tenggang rasa, dan saling peduli sesama."
+            },
+            {
+                id: 'q1-200-2', catId: 1, points: 200,
+                text: "Indonesia adalah negara multikultur yang menjunjung tinggi toleransi dan menerima perbedaan beragama di tengah masyarakat. Multikulturalisme bangsa Indonesia dalam kehidupan beragama ditandai dengan sikap...",
+                options: ["A. Membeda-bedakan hak beragama", "B. Saling menghargai dan menghormati", "C. Memaksa kepercayaan orang lain", "D. Mengutamakan kelompok mayoritas saja"],
+                correct: 1,
+                explanation: "Keberagaman agama disikapi dengan rasa saling menghargai dan menghormati antarumat beragama."
+            },
+            {
+                id: 'q1-200-3', catId: 1, points: 200,
+                text: "Para perumus Pancasila berasal dari berbagai latar daerah dan golongan yang berbeda di Nusantara, namun mereka mampu menyatukan gagasan demi kemerdekaan. Nilai utama yang terkandung dalam peristiwa persatuan perumus Pancasila tersebut adalah...",
+                options: ["A. Individualisme", "B. Persatuan dan kesatuan", "C. Egoisme kedaerahan", "D. Persaingan antarwilayah"],
+                correct: 1,
+                explanation: "Semangat persatuan dan kesatuan bangsa menjadi landasan utama para perumus Pancasila."
+            },
+            {
+                id: 'q1-300-1', catId: 1, points: 300,
+                text: "Saat melakukan kegiatan kerja bakti di sekolah, siswa saling bekerja sama membersihkan lingkungan tanpa membedakan suku maupun agama. Kegiatan kerja bakti dan gotong royong ini merupakan wujud pengamalan Pancasila sila ke-...",
+                options: ["A. Sila Ke-2", "B. Sila Ke-3", "C. Sila Ke-4", "D. Sila Ke-5"],
+                correct: 1,
+                explanation: "Gotong royong dan menjaga kebersamaan merupakan wujud pengamalan Sila Ke-3 (Persatuan Indonesia)."
+            },
+            {
+                id: 'q1-300-2', catId: 1, points: 300,
+                text: "Bangga saat mengenakan pakaian adat atau kain batik buatan dalam negeri merupakan cerminan rasa cinta tanah air. Sikap bangga menggunakan produk dalam negeri ini merupakan contoh pengamalan Pancasila sila ke-...",
+                options: ["A. Sila Ke-1", "B. Sila Ke-2", "C. Sila Ke-3", "D. Sila Ke-4"],
+                correct: 2,
+                explanation: "Cinta produk dalam negeri dan bangga berbudaya Indonesia adalah pengamalan Sila Ke-3."
+            },
+            {
+                id: 'q1-300-3', catId: 1, points: 300,
+                text: "Kalimat 'Ketuhanan dengan kewajiban menjalankan syariat Islam bagi pemeluk-pemeluknya' dalam Piagam Jakarta sempat menuai keberatan dari tokoh-tokoh Indonesia timur. Sebelum sidang PPKI, Moh. Hatta mengajak beberapa tokoh mengadakan diskusi. Nilai juang dari ilustrasi tersebut adalah...",
+                options: ["A. Mempertahankan pendapat sendiri", "B. Saling menghargai dan mengutamakan kepentingan bersama", "C. Memutus komunikasi dengan pihak lain", "D. Menunda perumusan kemerdekaan"],
+                correct: 1,
+                explanation: "Sikap saling menghargai dan mengutamakan kepentingan bersama bangsa di atas kepentingan kelompok."
+            },
+            {
+                id: 'q1-400-1', catId: 1, points: 400,
+                text: "Saat ada kegiatan seperti pembangunan fasilitas umum atau penyelesaian masalah warga, keputusan diambil bersama secara adil melalui diskusi. Kegiatan musyawarah untuk mencapai mufakat dalam kehidupan bermasyarakat merupakan pengamalan Pancasila sila ke-...",
+                options: ["A. Sila Ke-2", "B. Sila Ke-3", "C. Sila Ke-4", "D. Sila Ke-5"],
+                correct: 2,
+                explanation: "Musyawarah mufakat adalah inti dari pengamalan Sila Ke-4 (Kerakyatan yang Dipimpin oleh Hikmat Kebijaksanaan...)."
+            },
+            {
+                id: 'q1-400-2', catId: 1, points: 400,
+                text: "Musyawarah merupakan nilai luhur bangsa dalam mengambil keputusan bersama. Apabila dalam musyawarah tidak kunjung tercapai kata mufakat, maka langkah demokratis yang diambil adalah...",
+                options: ["A. Membatalkan semua keputusan", "B. Pemilihan suara terbanyak (voting)", "C. Menyerahkan kepada ketua saja", "D. Mengikuti pendapat orang tertua"],
+                correct: 1,
+                explanation: "Voting atau pengambilan suara terbanyak dilakukan jika musyawarah mufakat tidak tercapai."
+            },
+            {
+                id: 'q1-500-1', catId: 1, points: 500,
+                text: "Sebagai warga negara yang baik, Doni selalu tertib berhenti di lampu merah dan membayar pajak kendaraannya tepat waktu. Tindakan mematuhi hukum, aturan lalu lintas, dan membayar pajak merupakan contoh pengamalan Pancasila sila ke-...",
+                options: ["A. Sila Ke-2", "B. Sila Ke-3", "C. Sila Ke-4", "D. Sila Ke-5"],
+                correct: 3,
+                explanation: "Sila Ke-5 mencakup pemenuhan kewajiban warga negara, taat aturan, serta menjaga ketertiban umum."
+            },
+            {
+                id: 'q1-500-2', catId: 1, points: 500,
+                text: "Semua rakyat Indonesia berhak menikmati kemakmuran, kesejahteraan, serta ketercukupan sandang dan pangan secara adil. Cita-cita menciptakan keadilan sosial dan kemakmuran merata merupakan tujuan utama dari Pancasila sila ke-...",
+                options: ["A. Sila Ke-2", "B. Sila Ke-3", "C. Sila Ke-4", "D. Sila Ke-5"],
+                correct: 3,
+                explanation: "Keadilan sosial dan kesejahteraan merata bagi seluruh rakyat adalah inti Sila Ke-5."
+            },
+
+            // ==================== KATEGORI 2: Sejarah & Tokoh ====================
+            {
+                id: 'q2-100-1', catId: 2, points: 100,
+                text: "Tokoh pejuang pendidikan nasional ini mendirikan perguruan Taman Siswa dan mencetuskan semboyan Tut Wuri Handayani. Siapakah nama asli dari Ki Hajar Dewantara?",
+                options: ["A. Suwardi Suryoningrat", "B. Danudirdja Setiabudi", "C. Cipto Mangunkusumo", "D. Samanhudi"],
+                correct: 0,
+                explanation: "Nama asli Ki Hajar Dewantara adalah Raden Mas Suwardi Suryoningrat."
+            },
+            {
+                id: 'q2-100-2', catId: 2, points: 100,
+                text: "Semboyan 'Ing Ngarso Sung Tulodo, Ing Madyo Mangun Karso, Tut Wuri Handayani' sangat terkenal dalam dunia pendidikan Indonesia. Siapakah tokoh nasional yang mencetuskan semboyan pendidikan tersebut?",
+                options: ["A. Ir. Soekarno", "B. Ki Hajar Dewantara", "C. RA Kartini", "D. KH Ahmad Dahlan"],
+                correct: 1,
+                explanation: "Ki Hajar Dewantara adalah Bapak Pendidikan Nasional pencetus semboyan tersebut."
+            },
+            {
+                id: 'q2-200-1', catId: 2, points: 200,
+                text: "Pada awal abad ke-20, para pelajar STOVIA mendirikan organisasi pergerakan nasional pertama di Indonesia. Kapan organisasi Budi Utomo resmi didirikan sehingga tanggalnya diperingati sebagai Hari Kebangkitan Nasional?",
+                options: ["A. 20 Mei 1908", "B. 28 Oktober 1928", "C. 17 Agustus 1945", "D. 10 November 1945"],
+                correct: 0,
+                explanation: "Budi Utomo didirikan pada 20 Mei 1908 oleh Dr. Soetomo dan para pelajar STOVIA."
+            },
+            {
+                id: 'q2-200-2', catId: 2, points: 200,
+                text: "Pada tanggal 28 Oktober 1928, para pemuda dari berbagai daerah mengikrarkan ikrar persatuan satu tanah air, satu bangsa, dan satu bahasa. Peristiwa bersejarah tersebut dikenal dengan sebutan...",
+                options: ["A. Proklamasi Kemerdekaan", "B. Sumpah Pemuda", "C. Hari Kebangkitan Nasional", "D. Piagam Jakarta"],
+                correct: 1,
+                explanation: "Ikrar Sumpah Pemuda diucapkan pada tanggal 28 Oktober 1928."
+            },
+            {
+                id: 'q2-300-1', catId: 3, points: 300,
+                text: "Pangeran Diponegoro, Tuanku Imam Bonjol, dan Pattimura berjuang gigih melawan penjajah namun perlawanan mereka kerap mengalami kegagalan. Apa penyebab utama kegagalan perjuangan bangsa Indonesia sebelum abad ke-20 tersebut?",
+                options: ["A. Perlawanan masih bersifat kedaerahan", "B. Kekurangan jumlah pasukan", "C. Tidak memiliki senjata tajam", "D. Tidak mendapat dukungan rakyat"],
+                correct: 0,
+                explanation: "Perjuangan sebelum 1908 mudah dipatahkan penjajah karena masih bersifat kedaerahan dan terpisah-pisah."
+            },
+            {
+                id: 'q2-300-2', catId: 2, points: 300,
+                text: "Di Blitar, terjadi perlawanan tentara bentukan Jepang terhadap kesewenang-wenangan penjajah pada tahun 1945. Siapakah nama tokoh yang memimpin perlawanan PETA di Blitar tersebut?",
+                options: ["A. Bung Tomo", "B. Supriadi", "C. Jenderal Sudirman", "D. Gatot Subroto"],
+                correct: 1,
+                explanation: "Sodancho Supriadi memimpin perlawanan PETA di Blitar pada Februari 1945."
+            },
+            {
+                id: 'q2-400-1', catId: 2, points: 400,
+                text: "Pemerintah kolonial Belanda pernah menerapkan sistem kerja paksa membangun jalan raya pos dari Anyer hingga Panarukan. Gubernur Jenderal Belanda yang memimpin sistem kerja rodi tersebut adalah...",
+                options: ["A. van den Bosch", "B. Herman Willem Daendels", "C. Jan Pieterszoon Coen", "D. Thomas Stamford Raffles"],
+                correct: 1,
+                explanation: "Herman Willem Daendels memprakarsai proyek jalan Anyer-Panarukan dengan kerja rodi."
+            },
+            {
+                id: 'q2-400-2', catId: 2, points: 400,
+                text: "Kebijakan sistem tanam paksa (Cultuurstelsel) memaksa rakyat menyisihkan sebagian lahannya untuk ditanami komoditas ekspor Belanda. Siapakah tokoh Gubernur Jenderal Belanda yang menerapkan sistem tanam paksa tersebut?",
+                options: ["A. Herman Willem Daendels", "B. Johannes van den Bosch", "C. JP Coen", "D. Van Deventer"],
+                correct: 1,
+                explanation: "Johannes van den Bosch adalah pencetus sistem Tanam Paksa pada tahun 1830."
+            },
+            {
+                id: 'q2-500-1', catId: 2, points: 500,
+                text: "Kerajaan Majapahit mencapai puncak kejayaan di bawah Raja Hayam Wuruk dan Patih Gajah Mada. Sumpah terkenal yang diucapkan Patih Gajah Mada untuk menyatukan Nusantara dikenal dengan...",
+                options: ["A. Sumpah Pemuda", "B. Sumpah Palapa", "C. Sumpah Amukti", "D. Sumpah Amangkubhumi"],
+                correct: 1,
+                explanation: "Sumpah Palapa diucapkan Patih Gajah Mada untuk menyatukan Nusantara."
+            },
+            {
+                id: 'q2-500-2', catId: 2, points: 500,
+                text: "Pangeran Antasari memimpin perlawanan rakyat Kalimantan Selatan melawan penjajahan Belanda dengan gigih. Apakah gelar keagamaan dan pemerintahan yang diberikan kepada Pangeran Antasari?",
+                options: ["A. Sultan Hamengkubuwono", "B. Panembahan Amiruddin Khalifatul Mukminin", "C. Sultan Agung Hanyokrokusumo", "D. Yang Dipertuan Agung"],
+                correct: 1,
+                explanation: "Gelar Pangeran Antasari adalah Panembahan Amiruddin Khalifatul Mukminin."
+            },
+
+            // ==================== KATEGORI 3: Proklamasi & Diplomasi ====================
+            {
+                id: 'q3-100-1', catId: 3, points: 100,
+                text: "Naskah Proklamasi Kemerdekaan dirumuskan oleh tokoh bangsa dan diketik rapi sebelum dibacakan pada 17 Agustus 1945. Siapakah tokoh pemuda yang bertugas mengetik naskah Proklamasi Kemerdekaan Indonesia?",
+                options: ["A. Sukarni", "B. Sayuti Melik", "C. BM Diah", "D. Chaerul Saleh"],
+                correct: 1,
+                explanation: "Sayuti Melik mengetik naskah proklamasi hasil konsep tulisan tangan Ir. Soekarno."
+            },
+            {
+                id: 'q3-100-2', catId: 3, points: 100,
+                text: "Bendera Pusaka Sang Saka Merah Putih dikibarkan pertama kali saat Upacara Proklamasi Kemerdekaan 17 Agustus 1945. Siapakah tokoh wanita pejuang yang menjahit bendera Sang Saka Merah Putih tersebut?",
+                options: ["A. RA Kartini", "B. Cut Nyak Dhien", "C. Ibu Fatmawati", "D. SK Trimurti"],
+                correct: 2,
+                explanation: "Ibu Fatmawati (istri Ir. Soekarno) menjahit bendera pusaka Merah Putih."
+            },
+            {
+                id: 'q3-200-1', catId: 3, points: 200,
+                text: "Perumusan naskah proklamasi dilakukan di rumah seorang perwira tinggi AL Jepang yang mendukung kemerdekaan Indonesia. Siapakah nama perwira Jepang yang menyediakan rumahnya di Jalan Imam Bonjol No. 1 Jakarta?",
+                options: ["A. Jenderal Terauchi", "B. Laksamana Tadashi Maeda", "C. Kumakichi Harada", "D. Kuniaki Koiso"],
+                correct: 1,
+                explanation: "Laksamana Tadashi Maeda mengizinkan rumahnya digunakan untuk perumusan naskah proklamasi."
+            },
+            {
+                id: 'q3-200-2', catId: 3, points: 200,
+                text: "Tokoh pemuda pejuang dan tokoh pers wanita yang berperan penting mengibarkan bendera Merah Putih saat peristiwa Proklamasi Kemerdekaan 17 Agustus 1945 bersama Latief Hendraningrat adalah...",
+                options: ["A. RA Kartini", "B. Surastri Karma (SK) Trimurti", "C. Dewi Sartika", "D. Cut Meutia"],
+                correct: 1,
+                explanation: "SK Trimurti adalah wartawan pejuang yang mendampingi pengibaran bendera saat Proklamasi."
+            },
+            {
+                id: 'q3-300-1', catId: 3, points: 300,
+                text: "Sutan Syahrir merupakan salah satu tokoh pergerakan yang mendengarkan siaran radio luar negeri mengenai kekalahan Jepang dari Sekutu. Apakah tindakan penting yang segera dilakukan Sutan Syahrir setelah mendengar berita tersebut?",
+                options: ["A. Melarikan diri ke luar negeri", "B. Mendesak Soekarno-Hatta segera memproklamasikan kemerdekaan", "C. Membantu tentara Jepang", "D. Menunggu perintah dari Sekutu"],
+                correct: 1,
+                explanation: "Sutan Syahrir mendesak Soekarno-Hatta segera memproklamasikan kemerdekaan tanpa menunggu janji Jepang."
+            },
+            {
+                id: 'q3-300-2', catId: 3, points: 300,
+                text: "Jepang membentuk badan persiapan kemerdekaan yang dalam bahasa Jepang disebut Dokuritsu Junbi Inkai. Apakah nama Indonesia dari lembaga Dokuritsu Junbi Inkai tersebut?",
+                options: ["A. BPUPKI", "B. PPKI", "C. PETA", "D. KNIP"],
+                correct: 1,
+                explanation: "Dokuritsu Junbi Inkai adalah nama Jepang dari PPKI."
+            },
+            {
+                id: 'q3-400-1', catId: 3, points: 400,
+                text: "Rakyat Surabaya berjuang gigih melawan sekutu hingga terjadi peristiwa perobekan warna biru bendera Belanda di Hotel Yamato pada 19 September 1945. Pertempuran puncak di Surabaya tersebut diperingati sebagai Hari Pahlawan pada tanggal...",
+                options: ["A. 17 Agustus", "B. 28 Oktober", "C. 10 November", "D. 15 Desember"],
+                correct: 2,
+                explanation: "Hari Pahlawan diperingati setiap tanggal 10 November mengenang Pertempuran Surabaya 1945."
+            },
+            {
+                id: 'q3-400-2', catId: 3, points: 400,
+                text: "Pada 23 Maret 1946, rakyat dan pejuang membakar kota Bandung agar tidak dijadikan markas militer sekutu. Komponis Indonesia yang menciptakan lagu 'Halo-Halo Bandung' untuk mengenang peristiwa Bandung Lautan Api tersebut adalah...",
+                options: ["A. WR Supratman", "B. Ismail Marzuki", "C. C. Simanjuntak", "D. Kusbini"],
+                correct: 1,
+                explanation: "Ismail Marzuki menciptakan lagu 'Halo-Halo Bandung'."
+            },
+            {
+                id: 'q3-500-1', catId: 3, points: 500,
+                text: "Perjuangan diplomasi kemerdekaan mencapai puncaknya saat Belanda secara resmi mengakui kedaulatan Indonesia pada 27 Desember 1949. Apakah nama konferensi internasional di Den Haag yang menghasilkan pengakuan kedaulatan tersebut?",
+                options: ["A. Perundingan Linggarjati", "B. Perundingan Renville", "C. Konferensi Meja Bundar (KMB)", "D. Perundingan Roem-Royen"],
+                correct: 2,
+                explanation: "Konferensi Meja Bundar (KMB) di Den Haag menghasilkan pengakuan kedaulatan RI oleh Belanda."
+            },
+
+            // ==================== KATEGORI 4: UUD '45 & Negara ====================
+            {
+                id: 'q4-100-1', catId: 4, points: 100,
+                text: "Dalam pemilihan umum, setiap warga negara Indonesia yang telah memenuhi syarat memiliki hak pilih untuk menentukan arah kepemimpinan bangsa. Berapakah batas usia minimum seorang warga negara agar berhak menjadi pemilih dalam Pemilu?",
+                options: ["A. 15 Tahun", "B. 17 Tahun", "C. 18 Tahun", "D. 21 Tahun"],
+                correct: 1,
+                explanation: "Syarat pemilih dalam Pemilu adalah telah berusia 17 tahun atau sudah menikah."
+            },
+            {
+                id: 'q4-100-2', catId: 4, points: 100,
+                text: "Demokrasi Pancasila menjamin pelaksanaan pemilihan umum Presiden dan Wakil Presiden secara berkala. Setiap berapa tahun sekali Pemilihan Umum Presiden dan Wakil Presiden dilaksanakan di Indonesia?",
+                options: ["A. 3 Tahun", "B. 4 Tahun", "C. 5 Tahun", "D. 6 Tahun"],
+                correct: 2,
+                explanation: "Pemilu Presiden dan Wakil Presiden di Indonesia dilaksanakan setiap 5 tahun sekali."
+            },
+            {
+                id: 'q4-200-1', catId: 4, points: 200,
+                text: "UUD 1945 Pasal 27 Ayat 2 menegaskan bahwa setiap warga negara berhak atas pekerjaan serta penghidupan yang layak bagi kemanusiaan. Lembaga tinggi negara yang bertugas mengawasi jalannya pemerintahan dan membuat UU bersama Presiden adalah...",
+                options: ["A. MA", "B. DPR", "C. BPK", "D. MK"],
+                correct: 1,
+                explanation: "DPR merupakan lembaga legislatif yang memegang fungsi pembuatan undang-undang dan pengawasan."
+            },
+            {
+                id: 'q4-200-2', catId: 4, points: 200,
+                text: "Sistem Trias Politika membagi kekuasaan negara menjadi Eksekutif, Legislatif, dan Yudikatif. Lembaga negara yang memegang kekuasaan yudikatif (mengadili dan menegakkan hukum) di Indonesia adalah...",
+                options: ["A. Presiden", "B. DPR", "C. Mahkamah Agung", "D. KPU"],
+                correct: 2,
+                explanation: "Kekuasaan yudikatif dipegang oleh Mahkamah Agung (MA) dan Mahkamah Konstitusi (MK)."
+            },
+            {
+                id: 'q4-300-1', catId: 4, points: 300,
+                text: "Setiap warga negara berhak memeluk agamanya masing-masing dan beribadah menurut kepercayaannya tanpa paksaan dari pihak manapun. Kebebasan beragama ini dijamin oleh pemerintah dalam UUD 1945 pasal...",
+                options: ["A. Pasal 27 Ayat 2", "B. Pasal 29 Ayat 2", "C. Pasal 30 Ayat 1", "D. Pasal 31 Ayat 2"],
+                correct: 1,
+                explanation: "Pasal 29 Ayat 2 UUD 1945 menjamin kebebasan beragama dan beribadah."
+            },
+            {
+                id: 'q4-300-2', catId: 4, points: 300,
+                text: "Pemerintah wajib membiayai dan menjamin setiap warga negara untuk memperoleh pendidikan dasar 9 tahun. Kewajiban warga negara mengikuti pendidikan dasar tercantum dalam UUD 1945 pasal...",
+                options: ["A. Pasal 27 Ayat 1", "B. Pasal 29 Ayat 2", "C. Pasal 31 Ayat 2", "D. Pasal 33 Ayat 1"],
+                correct: 2,
+                explanation: "Pasal 31 Ayat 2 UUD 1945 menegaskan kewajiban mengikuti pendidikan dasar yang dibiayai negara."
+            },
+            {
+                id: 'q4-400-1', catId: 4, points: 400,
+                text: "DPR memiliki hak interpelasi untuk meminta keterangan kepada pemerintah mengenai kebijakan penting yang berdampak luas bagi masyarakat. Apakah nama lembaga independen yang bertugas menyelenggarakan Pemilu secara adil di Indonesia?",
+                options: ["A. BPK", "B. KPU", "C. KPK", "D. MK"],
+                correct: 1,
+                explanation: "Komisi Pemilihan Umum (KPU) adalah lembaga penyelenggara pemilu di Indonesia."
+            },
+            {
+                id: 'q4-400-2', catId: 4, points: 400,
+                text: "Asas penentuan kewarganegaraan seseorang dapat berdasarkan garis keturunan orang tuanya tanpa memandang tempat ia dilahirkan. Apakah istilah hukum untuk asas kewarganegaraan berdasarkan keturunan tersebut?",
+                options: ["A. Asas Ius Soli", "B. Asas Ius Sanguinis", "C. Asas Bipatride", "D. Asas Apatride"],
+                correct: 1,
+                explanation: "Asas Ius Sanguinis menetapkan kewarganegaraan berdasarkan hubungan darah/keturunan orang tua."
+            },
+            {
+                id: 'q4-500-1', catId: 4, points: 500,
+                text: "Presiden berwenang memberikan pengampunan atau penghapusan hukuman pidana kepada sekelompok orang yang melakukan tindak pidana tertentu atas pertimbangan DPR. Pengampunan hukuman tersebut dikenal dengan istilah...",
+                options: ["A. Grasi", "B. Abolisi", "C. Amnesti", "D. Rehabilitasi"],
+                correct: 2,
+                explanation: "Amnesti adalah pengampunan hukuman pidana yang diberikan Presiden dengan pertimbangan DPR."
+            },
+
+            // ==================== KATEGORI 5: Budaya & Geografi ====================
+            {
+                id: 'q5-100-1', catId: 5, points: 100,
+                text: "Wilayah Indonesia berada pada posisi silang dunia yang diapit oleh dua benua dan dua samudra luas. Sebutkan dua samudra yang mengapit wilayah negara Indonesia!",
+                options: ["A. Pasifik dan Atlantik", "B. Hindia dan Pasifik", "C. Hindia dan Arktik", "D. Pasifik dan Antartika"],
+                correct: 1,
+                explanation: "Indonesia diapit oleh Samudra Hindia di sebelah selatan/barat dan Samudra Pasifik di utara/timur."
+            },
+            {
+                id: 'q5-100-2', catId: 5, points: 100,
+                text: "Burung Jalak Bali merupakan fauna endemik dilindungi yang memiliki warna bulu putih bersih dengan lingkaran biru di sekitar matanya. Dari pulau manakah asal fauna endemik Jalak Bali tersebut?",
+                options: ["A. Pulau Jawa", "B. Pulau Bali", "C. Pulau Lombok", "D. Pulau Sumatra"],
+                correct: 1,
+                explanation: "Jalak Bali adalah burung khas dan endemik dari Pulau Bali."
+            },
+            {
+                id: 'q5-200-1', catId: 5, points: 200,
+                text: "Suku Tengger di kawasan Gunung Bromo memiliki tradisi melarungkan hasil bumi dan sesaji ke dalam kawah gunung saat bulan purnama. Apakah nama upacara adat tahunan Suku Tengger tersebut?",
+                options: ["A. Upacara Kasada (Yadnya Kasada)", "B. Upacara Sekaten", "C. Upacara Ngaben", "D. Upacara Rambu Solo"],
+                correct: 0,
+                explanation: "Upacara Yadnya Kasada dilestarikan oleh masyarakat Suku Tengger di kawah Bromo."
+            },
+            {
+                id: 'q5-200-2', catId: 5, points: 200,
+                text: "'Soleram, Soleram, Soleram anak yang manis... Anak manis janganlah dicium sayang, kalau dicium merahlah pipinya.' Penggalan lagu daerah Soleram tersebut berasal dari provinsi...",
+                options: ["A. Sumatra Barat", "B. Riau", "C. Sumatra Utara", "D. Jambi"],
+                correct: 1,
+                explanation: "Soleram adalah lagu daerah terkenal yang berasal dari Provinsi Riau."
+            },
+            {
+                id: 'q5-300-1', catId: 5, points: 300,
+                text: "Tarian tradisional dari daerah Danau Toba Sumatra Utara ini dibawakan dalam acara adat ritual pernikahan, kematian, maupun penyembuhan dengan iringan musik mangondangi. Nama tarian tersebut adalah...",
+                options: ["A. Tari Saman", "B. Tari Tor-Tor", "C. Tari Piring", "D. Tari Jaipong"],
+                correct: 1,
+                explanation: "Tari Tor-Tor adalah tarian khas suku Batak di kawasan Danau Toba, Sumatra Utara."
+            },
+            {
+                id: 'q5-300-2', catId: 5, points: 300,
+                text: "Di Kraton Yogyakarta, diadakan perayaan festival tahunan selama 7 hari berturut-turut pada tanggal 6 hingga 12 Rabiul Awal untuk memperingati Maulid Nabi. Nama festival tradisi tersebut adalah...",
+                options: ["A. Festival Kasada", "B. Festival Sekaten", "C. Festival Tabuik", "D. Festival Grebeg Pasar"],
+                correct: 1,
+                explanation: "Festival Sekaten diselenggarakan di Keraton Yogyakarta setiap bulan Maulud/Rabiul Awal."
+            },
+            {
+                id: 'q5-400-1', catId: 5, points: 400,
+                text: "Pulau Kalimantan yang kaya akan sumber daya alam terdiri dari beberapa provinsi setelah pemekaran wilayah. Berapakah jumlah provinsi yang ada di Pulau Kalimantan saat ini?",
+                options: ["A. 4 Provinsi", "B. 5 Provinsi", "C. 6 Provinsi", "D. 7 Provinsi"],
+                correct: 1,
+                explanation: "Pulau Kalimantan terdiri dari 5 provinsi: Kalbar, Kalteng, Kalsel, Kaltim, dan Kaltara."
+            },
+            {
+                id: 'q5-400-2', catId: 5, points: 400,
+                text: "Provinsi Kalimantan Barat terletak di Pulau Kalimantan dan dilintasi oleh garis khatulistiwa. Apakah nama ibu kota dari Provinsi Kalimantan Barat?",
+                options: ["A. Samarinda", "B. Banjarmasin", "C. Pontianak", "D. Palangkaraya"],
+                correct: 2,
+                explanation: "Ibu kota Provinsi Kalimantan Barat adalah Kota Pontianak."
+            },
+            {
+                id: 'q5-500-1', catId: 5, points: 500,
+                text: "Budi berangkat dari Kota Padang (WIB) menuju Balikpapan (WITA) pada pukul 08.00 WIB. Jika lama penerbangan adalah 5 jam, pukul berapakah Budi tiba di Balikpapan menurut standar waktu lokal (WITA)?",
+                options: ["A. 13.00 WITA", "B. 14.00 WITA", "C. 15.00 WITA", "D. 12.00 WITA"],
+                correct: 1,
+                explanation: "08.00 WIB + 5 jam = 13.00 WIB. Karena WITA lebih cepat 1 jam dari WIB, maka waktu tiba = 14.00 WITA."
+            },
+
+            // ==================== KATEGORI 6: Alam & Bojonegoro ====================
+            {
+                id: 'q6-100-1', catId: 6, points: 100,
+                text: "Penebangan pohon secara liar dan penggundulan hutan secara permanen dapat memicu banjir serta bencana ekologis. Apakah istilah teknis untuk proses Kerusakan atau Penggundulan Hutan tersebut?",
+                options: ["A. Reboisasi", "B. Deforestasi", "C. Erosi", "D. Reorganisasi"],
+                correct: 1,
+                explanation: "Deforestasi adalah pengerusakan atau penebangan hutan secara luas."
+            },
+            {
+                id: 'q6-200-1', catId: 6, points: 200,
+                text: "Flora langka raksasa Rafflesia Arnoldii tidak memiliki daun maupun batang dan mengeluarkan aroma yang khas. Di provinsi manakah Bunga Rafflesia Arnoldii pertama kali ditemukan di hutan Sumatra?",
+                options: ["A. Aceh", "B. Bengkulu (Bengkulu Selatan)", "C. Riau", "D. Lampung"],
+                correct: 1,
+                explanation: "Rafflesia Arnoldii pertama kali ditemukan di hutan tropis Bengkulu Selatan."
+            },
+            {
+                id: 'q6-300-1', catId: 6, points: 300,
+                text: "Satwa endemik asal Pulau Papua ini memiliki keindahan bulu yang sangat memesona hingga dijuluki 'Bird of Paradise'. Apakah nama burung endemik khas dari wilayah Papua tersebut?",
+                options: ["A. Burung Maleo", "B. Burung Cendrawasih", "C. Jalak Bali", "D. Burung Kakak Tua"],
+                correct: 1,
+                explanation: "Burung Cendrawasih adalah fauna khas Papua yang sangat dilindungi."
+            },
+            {
+                id: 'q6-400-1', catId: 6, points: 400,
+                text: "Taman Nasional Lore Lindu di Sulawesi Tengah menjadi habitat perlindungan bagi satwa endemik unik yang hanya bertelur sebutir dalam setiap musimnya. Satwa unik yang dimaksud adalah...",
+                options: ["A. Burung Maleo", "B. Burung Jalak", "C. Anoa", "D. Burung Kakaktua"],
+                correct: 0,
+                explanation: "Burung Maleo adalah fauna endemik Sulawesi yang mengubur telurnya di pasir panas."
+            },
+            {
+                id: 'q6-500-1', catId: 6, points: 500,
+                text: "Kabupaten Bojonegoro memegang peranan vital dalam perekonomian nasional berkat penemuan cadangan minyak bumi melimpah. Di lapangan migas manakah lokasi tambang utama penghasil minyak bumi di Bojonegoro tersebut?",
+                options: ["A. Lapangan Wonocolo", "B. Lapangan Banyu Urip / Blok Cepu", "C. Lapangan Sukowati", "D. Lapangan Jabung"],
+                correct: 1,
+                explanation: "Lapangan Banyu Urip (Blok Cepu) di Kabupaten Bojonegoro menopang produksi minyak nasional."
+            },
+
+            // ==================== KATEGORI 7: Bela Negara & Global ====================
+            {
+                id: 'q7-100-1', catId: 7, points: 100,
+                text: "Tentara Nasional Indonesia (TNI) lahir dari perjuangan rakyat untuk mempertahankan kedaulatan negara Republik Indonesia. Pada tanggal berapakah Hari Ulang Tahun Tentara Nasional Indonesia (TNI) diperingati setiap tahunnya?",
+                options: ["A. 17 Agustus", "B. 1 Oktober", "C. 5 Oktober", "D. 10 November"],
+                correct: 2,
+                explanation: "HUT TNI diperingati setiap tanggal 5 Oktober."
+            },
+            {
+                id: 'q7-200-1', catId: 7, points: 200,
+                text: "Kartika Eka Paksi merupakan semboyan kebanggaan prajurit TNI Angkatan Darat yang mencerminkan nilai-nilai luhur keprajuritan. Semboyan Kartika Eka Paksi tersebut berasal dari bahasa...",
+                options: ["A. Melayu", "B. Sansekerta", "C. Jawa Kuno", "D. Arab"],
+                correct: 1,
+                explanation: "Semboyan Kartika Eka Paksi berasal dari bahasa Sansekerta."
+            },
+            {
+                id: 'q7-300-1', catId: 7, points: 300,
+                text: "Sistem Pertahanan Keamanan Rakyat Semesta (Sishankamrata) memiliki struktur komando kewilayahan di tingkat kecamatan. Siapakah pejabat pimpinan komando unit pelayanan TNI di tingkat kecamatan?",
+                options: ["A. Babinsa", "B. Danramil", "C. Dandim", "D. Kapolsek"],
+                correct: 1,
+                explanation: "Kecamatan dipimpin oleh Danramil (Komandan Koramil)."
+            },
+            {
+                id: 'q7-400-1', catId: 7, points: 400,
+                text: "'Tiap-tiap warga negara berhak dan wajib ikut serta dalam usaha pertahanan dan keamanan negara.' Bunyi pasal tersebut tercantum dalam UUD 1945 pasal...",
+                options: ["A. Pasal 27 Ayat 1", "B. Pasal 27 Ayat 3", "C. Pasal 30 Ayat 1", "D. Pasal 31 Ayat 1"],
+                correct: 2,
+                explanation: "Pasal 30 Ayat 1 UUD 1945 mengatur hak dan kewajiban warga negara dalam pertahanan dan keamanan."
+            },
+            {
+                id: 'q7-500-1', catId: 7, points: 500,
+                text: "Lima menteri luar negeri negara Asia Tenggara menandatangani Deklarasi Bangkok untuk mendirikan organisasi regional ASEAN. Pada tanggal berapakah organisasi ASEAN secara resmi dibentuk?",
+                options: ["A. 8 Agustus 1967", "B. 17 Agustus 1965", "C. 20 Mei 1967", "D. 10 November 1967"],
+                correct: 0,
+                explanation: "ASEAN resmi didirikan pada tanggal 8 Agustus 1967 melalui Deklarasi Bangkok."
+            }
+        ];
+
+        let activeBoardQuestions = []; // 35 Active Questions selected for session
+        let gameState = {
+            score: 0,
+            completedIds: new Set(), // Track answered questions (correct or wrong)
+            retryQueue: [],         // Array of question IDs answered wrong in main mode
+            activeQuestion: null,
+            isRetryMode: false,
+            currentRetryIndex: 0
+        };
+
+        // Window Load Initialization
+        window.onload = function() {
+            generateSessionQuestions();
+            renderBoard();
+            updateDashboard();
+        };
+
+        function generateSessionQuestions() {
+            activeBoardQuestions = [];
+            const pointTiers = [100, 200, 300, 400, 500];
+
+            for (let catId = 1; catId <= 7; catId++) {
+                pointTiers.forEach(pts => {
+                    const pool = questionBank.filter(q => q.catId === catId && q.points === pts);
+                    if (pool.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * pool.length);
+                        activeBoardQuestions.push(pool[randomIndex]);
+                    }
+                });
+            }
+        }
+
+        function renderBoard() {
+            const grid = document.getElementById('boardGrid');
+            grid.innerHTML = '';
+
+            const pointTiers = [100, 200, 300, 400, 500];
+
+            pointTiers.forEach(pts => {
+                for (let catId = 1; catId <= 7; catId++) {
+                    const qData = activeBoardQuestions.find(q => q.catId === catId && q.points === pts);
+                    if (!qData) return;
+
+                    const card = document.createElement('div');
+                    const isDone = gameState.completedIds.has(qData.id);
+
+                    let cardStyle = "bg-jeopardy-card hover:bg-jeopardy-cardHover border-blue-500/30 text-amber-400 cursor-pointer hover:-translate-y-1";
+                    let statusBadge = "";
+
+                    if (isDone) {
+                        // Once answered (correct or wrong), lock card in main board
+                        cardStyle = "bg-slate-900/80 border-slate-700/50 text-slate-500 opacity-60 cursor-not-allowed";
+                        statusBadge = '<i class="fa-solid fa-lock text-xs text-slate-500"></i>';
+                    }
+
+                    card.className = `border-2 rounded-2xl p-4 flex flex-col justify-center items-center font-black text-xl md:text-2xl transition transform shadow-md h-20 ${cardStyle}`;
+                    
+                    card.innerHTML = `
+                        <span class="${isDone ? 'text-slate-500' : 'glow-gold'}">${qData.points}</span>
+                        <div class="mt-1">${statusBadge}</div>
+                    `;
+
+                    // CLICK ACTION:
+                    // If card is already answered, click is BLOCKED in main mode.
+                    if (isDone) {
+                        card.onclick = () => {
+                            showToast("Kartu ini sudah selesai dikerjakan dan terkunci!", "warning");
+                        };
+                    } else {
+                        card.onclick = () => openQuestionModal(qData.id);
+                    }
+
+                    grid.appendChild(card);
+                }
+            });
+        }
+
+        function openQuestionModal(qId) {
+            playSound('click');
+            const q = activeBoardQuestions.find(item => item.id === qId);
+            if (!q) return;
+
+            gameState.activeQuestion = q;
+
+            // Header info & full unified narrative question text
+            document.getElementById('modalCatBadge').innerText = `Kategori ${q.catId}`;
+            document.getElementById('modalPointBadge').innerText = `${q.points} POIN`;
+            document.getElementById('modalFullQuestion').innerText = q.text;
+
+            // Mode Label
+            const modeIndicator = document.getElementById('modeIndicator');
+            if (gameState.isRetryMode) {
+                modeIndicator.innerText = `Mode Pengulangan (${gameState.currentRetryIndex + 1} dari ${gameState.retryQueue.length})`;
+            } else {
+                modeIndicator.innerText = 'Mode Permainan Utama';
+            }
+
+            // Hide Feedback and Explanation Boxes
+            const feedbackBox = document.getElementById('feedbackBox');
+            const explanationBox = document.getElementById('explanationBox');
+            feedbackBox.className = 'p-4 rounded-2xl hidden border transition-all';
+            explanationBox.className = 'bg-emerald-950/50 border border-emerald-500/30 p-4 rounded-2xl hidden';
+
+            // Populate Options
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((optText, index) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left bg-jeopardy-card hover:bg-blue-800/60 border border-blue-500/30 p-3.5 rounded-xl text-sm md:text-base font-semibold text-blue-100 transition flex items-center justify-between";
+                btn.innerHTML = `<span>${optText}</span> <i class="fa-regular fa-circle text-blue-400"></i>`;
+                btn.onclick = () => submitAnswer(index, btn);
+
+                optionsContainer.appendChild(btn);
+            });
+
+            // Show Modal
+            document.getElementById('questionModal').classList.remove('hidden');
+        }
+
+        function submitAnswer(selectedIndex, btnElement) {
+            const q = gameState.activeQuestion;
+            if (!q) return;
+
+            // Disable all option buttons immediately
+            const allBtns = document.querySelectorAll('#optionsContainer button');
+            allBtns.forEach(b => b.disabled = true);
+
+            const feedbackBox = document.getElementById('feedbackBox');
+            const explanationBox = document.getElementById('explanationBox');
+
+            if (selectedIndex === q.correct) {
+                // JAWABAN BENAR
+                playSound('correct');
+                btnElement.className = "w-full text-left bg-emerald-900/80 border-2 border-emerald-400 p-3.5 rounded-xl text-sm md:text-base font-bold text-white flex items-center justify-between glow-gold";
+                btnElement.innerHTML = `<span>${q.options[selectedIndex]}</span> <i class="fa-solid fa-circle-check text-emerald-300 text-lg"></i>`;
+
+                feedbackBox.className = "p-4 rounded-2xl bg-emerald-900/40 border border-emerald-500/60 text-emerald-200 text-sm font-bold flex items-center gap-3";
+                feedbackBox.innerHTML = `<i class="fa-solid fa-circle-check text-2xl text-emerald-400"></i> <div>Jawaban Anda Tepat! ${gameState.isRetryMode ? '(Babak Pengulangan: 0 Poin)' : `+${q.points} Poin`}</div>`;
+                feedbackBox.classList.remove('hidden');
+
+                if (!gameState.isRetryMode) {
+                    gameState.score += q.points;
+                }
+
+                // Mark completed and remove from retry queue if present
+                gameState.completedIds.add(q.id);
+                gameState.retryQueue = gameState.retryQueue.filter(id => id !== q.id);
+
+                // Show Explanation Box
+                document.getElementById('explanationText').innerText = q.explanation;
+                explanationBox.classList.remove('hidden');
+
+            } else {
+                // JAWABAN SALAH
+                playSound('wrong');
+                btnElement.className = "w-full text-left bg-red-900/80 border-2 border-red-400 p-3.5 rounded-xl text-sm md:text-base font-bold text-white flex items-center justify-between";
+                btnElement.innerHTML = `<span>${q.options[selectedIndex]}</span> <i class="fa-solid fa-circle-xmark text-red-300 text-lg"></i>`;
+
+                feedbackBox.className = "p-4 rounded-2xl bg-red-900/40 border border-red-500/60 text-red-200 text-sm font-bold flex items-center gap-3";
+
+                if (!gameState.isRetryMode) {
+                    // Main Mode wrong answer: DO NOT reveal correct option or explanation!
+                    feedbackBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-2xl text-red-400"></i> <div>Jawaban Belum Tepat! Soal ini dikunci dan disimpan untuk Babak Pengulangan di akhir.</div>`;
+                    
+                    if (!gameState.retryQueue.includes(q.id)) {
+                        gameState.retryQueue.push(q.id);
+                    }
+                    gameState.completedIds.add(q.id); // Mark attempted so card locks on main board
+                } else {
+                    // Retry Mode wrong answer: Show explanation to help student learn
+                    feedbackBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-2xl text-red-400"></i> <div>Jawaban masih belum tepat. Pelajari penjelasan di bawah ini!</div>`;
+                    document.getElementById('explanationText').innerText = q.explanation;
+                    explanationBox.classList.remove('hidden');
+                }
+
+                feedbackBox.classList.remove('hidden');
+            }
+
+            updateDashboard();
+            renderBoard();
+        }
+
+        function updateDashboard() {
+            document.getElementById('scoreDisplay').innerText = gameState.score.toLocaleString('id-ID');
+            document.getElementById('progressDisplay').innerText = `${gameState.completedIds.size} / 35`;
+
+            const retryHeaderBtn = document.getElementById('retryHeaderBtn');
+            const retryCount = document.getElementById('retryCount');
+            const finishBar = document.getElementById('finishBar');
+
+            retryCount.innerText = gameState.retryQueue.length;
+
+            const totalCompleted = gameState.completedIds.size;
+
+            // MANDATORI: Babak Pengulangan HANYA BISA DIAKSES bila Progres Soal mencapai 35 / 35!
+            if (totalCompleted >= 35 && gameState.retryQueue.length > 0) {
+                retryHeaderBtn.disabled = false;
+                retryHeaderBtn.className = "bg-red-500 hover:bg-red-600 text-white border border-red-400 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-lg animate-pulse";
+                retryHeaderBtn.innerHTML = `<i class="fa-solid fa-rotate-left"></i> <span>Mulai Pengulangan: <strong id="retryCount">${gameState.retryQueue.length}</strong></span>`;
+
+                finishBar.classList.remove('hidden');
+            } else {
+                retryHeaderBtn.disabled = true;
+                retryHeaderBtn.className = "bg-red-500/10 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 opacity-50 cursor-not-allowed";
+                retryHeaderBtn.innerHTML = `<i class="fa-solid fa-lock"></i> <span>Perlu Diulang: <strong id="retryCount">${gameState.retryQueue.length}</strong></span>`;
+
+                finishBar.classList.add('hidden');
+            }
+        }
+
+        function closeModal() {
+            playSound('click');
+            document.getElementById('questionModal').classList.add('hidden');
+            gameState.activeQuestion = null;
+
+            // If in retry mode and queue still has questions, open next question sequentially
+            if (gameState.isRetryMode) {
+                if (gameState.retryQueue.length > 0) {
+                    const nextId = gameState.retryQueue[0];
+                    setTimeout(() => {
+                        openQuestionModal(nextId);
+                    }, 200);
+                } else {
+                    gameState.isRetryMode = false;
+                    showToast("Selamat! Seluruh soal pengulangan telah berhasil diselesaikan!", "info");
+                }
+            }
+        }
+
+        function startRetryPhase() {
+            if (gameState.completedIds.size < 35) {
+                showToast("Babak Pengulangan masih terkunci! Selesaikan dahulu seluruh 35 soal di papan.", "warning");
+                return;
+            }
+
+            if (gameState.retryQueue.length === 0) {
+                showToast("Luar biasa! Tidak ada soal yang perlu diulang.", "info");
+                return;
+            }
+
+            gameState.isRetryMode = true;
+            gameState.currentRetryIndex = 0;
+            document.getElementById('finishBar').classList.add('hidden');
+
+            openQuestionModal(gameState.retryQueue[0]);
+        }
+
+        function confirmReset() {
+            if (confirm("Apakah Anda yakin ingin meriset seluruh papan game Jeopardy dan mengocok variasi soal baru dari bank soal?")) {
+                gameState = {
+                    score: 0,
+                    completedIds: new Set(),
+                    retryQueue: [],
+                    activeQuestion: null,
+                    isRetryMode: false,
+                    currentRetryIndex: 0
+                };
+                generateSessionQuestions();
+                renderBoard();
+                updateDashboard();
+                document.getElementById('finishBar').classList.add('hidden');
+                showToast("Papan berhasil diriset dan variasi soal baru telah dikocok!", "info");
+            }
+        }
+    </script>
+</body>
+</html>
