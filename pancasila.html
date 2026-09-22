@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Satria Pancasila - Misi Penjaga Ideologi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        title: ['Cinzel', 'serif']
+                    },
+                    colors: {
+                        garuda: {
+                            gold: '#D4AF37',
+                            darkGold: '#AA7C11',
+                            red: '#B91C1C',
+                            darkRed: '#7F1D1D',
+                            emerald: '#047857',
+                            navy: '#0F172A',
+                            cardBg: '#1E293B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #0B0F17;
+            color: #F8FAFC;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #FFE259 0%, #FFA751 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .quest-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .quest-card:hover:not(.locked) {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 12px 25px -5px rgba(212, 175, 55, 0.3);
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.08); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .active-mission-glow {
+            animation: pulse-ring 2.5s infinite ease-in-out;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0F172A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D4AF37;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-yellow-500 selection:text-black">
+
+    <!-- Top Navigation & Player Bar -->
+    <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-amber-500/30 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showScreen('home-screen')">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-600 to-yellow-400 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg border border-yellow-200">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h1 class="font-title font-bold text-lg md:text-xl text-amber-400 leading-none">SATRIA PANCASILA</h1>
+                    <p class="text-xs text-slate-400">Petualangan Misi Penjaga Ideologi Negara</p>
+                </div>
+            </div>
+
+            <!-- Player Stats HUD -->
+            <div id="player-hud" class="hidden flex items-center bg-slate-800/80 px-4 py-1.5 rounded-full border border-slate-700 space-x-4 text-xs md:text-sm">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-user-astronaut text-amber-400"></i>
+                    <span id="hud-player-name" class="font-semibold text-slate-200">Satria</span>
+                    <span id="hud-player-rank" class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] px-2 py-0.5 rounded-full font-bold">Taruna</span>
+                </div>
+                <div class="h-4 w-px bg-slate-700"></div>
+                <div class="flex items-center space-x-1 text-yellow-400" title="Total Skor XP">
+                    <i class="fa-solid fa-star"></i>
+                    <span id="hud-xp" class="font-bold">0 XP</span>
+                </div>
+                <div class="flex items-center space-x-1 text-red-400" title="Sisa Nyawa Misi">
+                    <i class="fa-solid fa-heart"></i>
+                    <span id="hud-lives" class="font-bold">3/3</span>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleAudio()" id="audio-btn" class="p-2 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 flex items-center justify-center transition" title="Buka/Tutup Suara">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <button onclick="showScreen('library-screen')" class="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span class="hidden sm:inline">Pustaka Garuda</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto w-full px-4 py-6 flex-grow">
+
+        <!-- ================= 1. HOME SCREEN ================= -->
+        <section id="home-screen" class="view-screen flex flex-col items-center justify-center py-6 text-center">
+            <div class="relative mb-6">
+                <div class="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-red-600 via-amber-500 to-yellow-300 p-1 flex items-center justify-center shadow-2xl active-mission-glow">
+                    <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-amber-400 text-6xl md:text-7xl">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                </div>
+                <span class="absolute -bottom-2 bg-amber-500 text-slate-950 font-black text-xs px-3 py-1 rounded-full uppercase tracking-widest shadow-md">
+                    Edisi Edukasi SD
+                </span>
+            </div>
+
+            <h1 class="font-title text-3xl md:text-5xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500">
+                PETUALANGAN SATRIA PANCASILA
+            </h1>
+            <p class="max-w-2xl text-slate-300 text-sm md:text-base mb-8 leading-relaxed">
+                Halo Satria Muda! Mari kita jelajahi sejarah bangsa, rahasia simbol Garuda, dan penerapan nilai-nilai luhur Pancasila melalui 4 Misi Petualangan Seru!
+            </p>
+
+            <!-- Registration Card -->
+            <div class="w-full max-w-md bg-slate-800/90 border border-amber-500/30 rounded-2xl p-6 shadow-xl text-left backdrop-blur-sm">
+                <h2 class="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-id-card"></i> Buat Profil Satria Anda
+                </h2>
+                
+                <form id="start-game-form" onsubmit="handleStartGame(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-slate-300 font-medium mb-1">Nama Pemain / Siswa:</label>
+                        <input type="text" id="player-name-input" required placeholder="Masukkan nama lengkapmu..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-amber-400 transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-300 font-medium mb-1">Kelas / Tingkat Sekolah:</label>
+                        <select id="player-class-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-amber-400 transition">
+                            <option value="Kelas 4 SD/MI">Kelas 4 SD / MI</option>
+                            <option value="Kelas 5 SD/MI">Kelas 5 SD / MI</option>
+                            <option value="Kelas 6 SD/MI">Kelas 6 SD / MI</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-extrabold text-sm md:text-base shadow-lg shadow-amber-500/20 transform hover:-translate-y-0.5 transition flex items-center justify-center gap-2">
+                            <span>MULAI PETUALANGAN</span>
+                            <i class="fa-solid fa-circle-play"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <button onclick="resetGameProgress()" class="mt-6 text-xs text-slate-500 hover:text-slate-400 underline transition">
+                <i class="fa-solid fa-rotate-right"></i> Reset Ulang Kemajuan
+            </button>
+        </section>
+
+
+        <!-- ================= 2. QUEST MAP / MISSION SELECT SCREEN ================= -->
+        <section id="map-screen" class="view-screen hidden">
+            <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs font-bold text-amber-400 uppercase tracking-widest">PETA PETUALANGAN</span>
+                    <h2 class="text-2xl font-bold text-white">Pilih Zona Misi Anda</h2>
+                    <p class="text-slate-400 text-xs md:text-sm">Setiap misi berisi 15 soal seru! Selesaikan secara berurutan untuk membuka Misi Kombinasi Pamungkas!</p>
+                </div>
+                
+                <div class="w-full md:w-64 bg-slate-900 p-3 rounded-xl border border-slate-700">
+                    <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-slate-300">Total Progres Misi</span>
+                        <span id="overall-progress-text" class="text-amber-400">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div id="overall-progress-bar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" id="quest-cards-container">
+                <!-- Generated via JS -->
+            </div>
+        </section>
+
+
+        <!-- ================= 3. ACTIVE MISSION / GAMEPLAY SCREEN ================= -->
+        <section id="mission-screen" class="view-screen hidden">
+            <!-- Top Tracker -->
+            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 mb-5 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <button onclick="confirmExitMission()" class="text-slate-400 hover:text-slate-200 text-sm px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 transition">
+                        <i class="fa-solid fa-arrow-left"></i> Peta
+                    </button>
+                    <div>
+                        <span id="mission-category-badge" class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            SEJARAH
+                        </span>
+                        <h3 id="mission-title-text" class="text-sm font-bold text-slate-100">Misi 1</h3>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 block">Soal</span>
+                    <span id="question-tracker" class="text-sm font-bold text-amber-400">1 / 15</span>
+                </div>
+            </div>
+
+            <!-- Single Integrated Question Box -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-5 md:p-8 shadow-2xl relative">
+                
+                <!-- Combined Question Narrative & Content -->
+                <div class="mb-6">
+                    <div class="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase mb-2">
+                        <i class="fa-solid fa-book-open"></i> Skenario Soal & Pertanyaan Inti
+                    </div>
+                    <div id="integrated-question-box" class="text-white text-base md:text-lg font-medium leading-relaxed bg-slate-900/90 border-l-4 border-amber-500 p-4 rounded-r-xl">
+                        <!-- Questions text integrated here -->
+                    </div>
+                </div>
+
+                <!-- Options List -->
+                <div id="options-container" class="grid grid-cols-1 gap-3.5 mb-6">
+                    <!-- Options injected dynamically -->
+                </div>
+
+                <!-- Explanation & Feedback Box (Hidden until answered) -->
+                <div id="feedback-box" class="hidden p-4 rounded-xl border mb-6 transition-all">
+                    <div class="flex items-center gap-2 font-bold text-sm mb-2" id="feedback-title">
+                        <!-- Title -->
+                    </div>
+                    <p id="feedback-explanation" class="text-xs md:text-sm text-slate-300 leading-relaxed">
+                        <!-- Explanation -->
+                    </p>
+                </div>
+
+                <!-- Footer Action Buttons -->
+                <div class="flex justify-end border-t border-slate-700/60 pt-4">
+                    <button id="next-question-btn" onclick="nextQuestion()" disabled class="px-6 py-2.5 rounded-xl bg-slate-700 text-slate-400 font-bold text-sm cursor-not-allowed transition flex items-center gap-2">
+                        <span>Selanjutnya</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= 4. RESULT SUMMARY SCREEN ================= -->
+        <section id="result-screen" class="view-screen hidden text-center py-8">
+            <div class="max-w-md mx-auto bg-slate-800 border border-amber-500/40 rounded-2xl p-6 md:p-8 shadow-2xl relative">
+                
+                <div id="result-badge-icon" class="w-24 h-24 rounded-full bg-amber-500/20 text-amber-400 border-2 border-amber-400 flex items-center justify-center text-4xl mx-auto mb-4">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+
+                <h2 id="result-title" class="text-2xl font-bold text-white mb-1">MISI SELESAI!</h2>
+                <p id="result-subtitle" class="text-xs text-slate-400 mb-6">Laporan Hasil Kinerja Satria Pancasila</p>
+
+                <div class="grid grid-cols-3 gap-2 bg-slate-900 p-4 rounded-xl mb-6 text-center border border-slate-700">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block uppercase font-bold">Benar</span>
+                        <span id="result-correct-count" class="text-lg font-bold text-emerald-400">0/15</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block uppercase font-bold">XP Bonus</span>
+                        <span id="result-xp-gained" class="text-lg font-bold text-yellow-400">+0</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block uppercase font-bold">Akurasi</span>
+                        <span id="result-accuracy" class="text-lg font-bold text-amber-400">0%</span>
+                    </div>
+                </div>
+
+                <p id="result-eval-text" class="text-xs text-slate-300 mb-6 leading-relaxed bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+                    Kerja bagus! Teruskan perjuanganmu memahami nilai-nilai luhur bangsa.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="showScreen('map-screen')" class="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm transition">
+                        Kembali Ke Peta
+                    </button>
+                    <button onclick="retryCurrentMission()" class="px-4 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-sm transition">
+                        Coba Lagi
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= 5. LIBRARY / PUSTAKA GARUDA SCREEN ================= -->
+        <section id="library-screen" class="view-screen hidden">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-book-bookmark text-amber-400"></i> Pustaka Garuda (60 Soal SD)
+                    </h2>
+                    <p class="text-xs text-slate-400">Pelajari seluruh bank soal dan pembahasan lengkap untuk mengasah wawasan kebangsaanmu.</p>
+                </div>
+                <button onclick="showScreen('map-screen')" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold">
+                    <i class="fa-solid fa-xmark"></i> Tutup
+                </button>
+            </div>
+
+            <!-- Library Tabs -->
+            <div class="flex space-x-2 border-b border-slate-700 mb-6 overflow-x-auto pb-2">
+                <button onclick="filterLibrary('all')" class="lib-tab active-lib-tab px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs">Semua (60)</button>
+                <button onclick="filterLibrary('sejarah')" class="lib-tab px-4 py-2 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700">Misi 1: Sejarah (15)</button>
+                <button onclick="filterLibrary('simbol')" class="lib-tab px-4 py-2 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700">Misi 2: Simbol (15)</button>
+                <button onclick="filterLibrary('pengamalan')" class="lib-tab px-4 py-2 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700">Misi 3: Pengamalan (15)</button>
+                <button onclick="filterLibrary('kombinasi')" class="lib-tab px-4 py-2 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700">Misi 4: Kombinasi (15)</button>
+            </div>
+
+            <!-- Library Items List -->
+            <div id="library-items-container" class="space-y-4">
+                <!-- Populated via JavaScript -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950/80 py-4 px-4 text-center text-xs text-slate-500">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div>
+                <span class="font-bold text-slate-400">SATRIA PANCASILA INTERAKTIF</span> &copy; 2026 - Wawasan Kebangsaan SD
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="hover:text-amber-400 cursor-pointer" onclick="showScreen('library-screen')">Rangkuman Soal</span>
+                <span class="hover:text-amber-400 cursor-pointer" onclick="exportCertificate()">Cetak Sertifikat</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* ==========================================================================
+           1. COMPREHENSIVE QUESTION DATA BANK (60 Questions Total - 15 per Mission)
+           ========================================================================== */
+        const QUESTION_BANK = [
+            // ---------------- MISI 1: SEJARAH KELAHIRAN PANCASILA (15 SOAL SD) ----------------
+            {
+                id: "m1_1",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Pada tahun 1945, bangsa Indonesia ingin bersiap untuk merdeka dari penjajahan. Pemerintah Jepang lalu membentuk badan khusus untuk menyelidiki dan merumuskan persiapan kemerdekaan Indonesia yang diketuai oleh Dr. K.R.T. Radjiman Wedyodiningrat. Apakah nama badan persiapan kemerdekaan tersebut?",
+                options: [
+                    "BPUPKI (Dokuritsu Junbi Cosakai)",
+                    "PPKI (Dokuritsu Junbi Inkai)",
+                    "Budi Utomo",
+                    "Panitia Sembilan"
+                ],
+                correctIndex: 0,
+                explanation: "BPUPKI dibentuk pada tanggal 1 Maret 1945 dan diketuai Dr. Radjiman Wedyodiningrat untuk mempelajari hal-hal penting terkait kemerdekaan Indonesia."
+            },
+            {
+                id: "m1_2",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Dalam sidang BPUPKI tanggal 1 Juni 1945, Ir. Soekarno menyampaikan pidato penting mengenai lima asas dasar negara. Atas saran ahli bahasa, lima asas tersebut dinamai Pancasila. Oleh karena itu, setiap tanggal 1 Juni kita memperingati hari...",
+                options: [
+                    "Hari Kesaktian Pancasila",
+                    "Hari Lahir Pancasila",
+                    "Hari Kemerdekaan RI",
+                    "Hari Sumpah Pemuda"
+                ],
+                correctIndex: 1,
+                explanation: "Tanggal 1 Juni diperingati sebagai Hari Lahir Pancasila karena pada tanggal itulah Ir. Soekarno pertama kali menyampaikan gagasan Pancasila."
+            },
+            {
+                id: "m1_3",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "BPUPKI membentuk panitia kecil berisi 9 orang tokoh bangsa yang bertugas mematangkan rumusan dasar negara. Panitia kecil ini dinamakan...",
+                options: [
+                    "Panitia Delapan",
+                    "Panitia Sembilan",
+                    "Panitia Lima",
+                    "PPKI"
+                ],
+                correctIndex: 1,
+                explanation: "Panitia Sembilan beranggotakan 9 tokoh seperti Ir. Soekarno, Moh. Hatta, Moh. Yamin, A.A. Maramis, dan tokoh nasional lainnya."
+            },
+            {
+                id: "m1_4",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Pada tanggal 22 Juni 1945, Panitia Sembilan berhasil menyusun rancangan pembukaan undang-undang dasar yang memuat dasar negara. Dokumen bersejarah ini dikenal dengan nama...",
+                options: [
+                    "Piagam Jakarta (Jakarta Charter)",
+                    "Teks Proklamasi",
+                    "Dekrit Presiden",
+                    "Sumpah Pemuda"
+                ],
+                correctIndex: 0,
+                explanation: "Panitia Sembilan menghasilkan Piagam Jakarta pada 22 Juni 1945 yang menjadi cikal bakal Pembukaan UUD 1945."
+            },
+            {
+                id: "m1_5",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Pada rumusan sila pertama Piagam Jakarta, terdapat kalimat 'dengan kewajiban menjalankan syariat Islam bagi pemeluk-pemeluknya'. Namun demi persatuan dan keutuhan seluruh bangsa Indonesia dari Sabang sampai Merauke, kalimat tersebut diubah menjadi...",
+                options: [
+                    "Ketuhanan Yang Maha Esa",
+                    "Kemanusiaan yang Adil dan Beradab",
+                    "Persatuan Indonesia",
+                    "Keadilan Sosial Bagi Seluruh Rakyat Indonesia"
+                ],
+                correctIndex: 0,
+                explanation: "Atas usul Mohammad Hatta dan kesepakatan para tokoh Islam, sila pertama disempurnakan menjadi 'Ketuhanan Yang Maha Esa' demi keutuhan NKRI."
+            },
+            {
+                id: "m1_6",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Setelah tugas BPUPKI selesai, dibentuklah Panitia Persiapan Kemerdekaan Indonesia (PPKI) pada tanggal 7 Agustus 1945. Dalam bahasa Jepang, PPKI disebut...",
+                options: [
+                    "Dokuritsu Junbi Cosakai",
+                    "Dokuritsu Junbi Inkai",
+                    "Seinendan",
+                    "Keibodan"
+                ],
+                correctIndex: 1,
+                explanation: "PPKI dalam bahasa Jepang disebut Dokuritsu Junbi Inkai yang diketuai oleh Ir. Soekarno."
+            },
+            {
+                id: "m1_7",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Sehari setelah Proklamasi Kemerdekaan Indonesia, yaitu pada tanggal 18 Agustus 1945, PPKI menggelar sidang pertama. Salah satu keputusan paling penting sidang tersebut adalah...",
+                options: [
+                    "Membentuk organisasi pemuda Budi Utomo",
+                    "Mengesahkan UUD 1945 serta menetapkan rumusan resmi Pancasila",
+                    "Menetapkan lagu Indonesia Raya ciptaan W.R. Supratman",
+                    "Membentuk Tentara Nasional Indonesia"
+                ],
+                correctIndex: 1,
+                explanation: "Sidang PPKI 18 Agustus 1945 mengesahkan UUD 1945 yang di dalamnya memuat rumusan sah Pancasila sebagai dasar negara."
+            },
+            {
+                id: "m1_8",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Selain Ir. Soekarno, ada dua tokoh nasional yang turut menyampaikan gagasan usulan dasar negara pada sidang BPUPKI akhir bulan Mei 1945. Siapakah kedua tokoh tersebut?",
+                options: [
+                    "Mr. Muhammad Yamin dan Prof. Dr. Soepomo",
+                    "Sutan Sjahrir dan Agus Salim",
+                    "Ki Hajar Dewantara dan Cipto Mangunkusumo",
+                    "Sayuti Melik dan Sukarni"
+                ],
+                correctIndex: 0,
+                explanation: "Tiga tokoh utama perumus dasar negara pada sidang BPUPKI adalah Mr. Moh. Yamin (29 Mei), Prof. Dr. Soepomo (31 Mei), dan Ir. Soekarno (1 Juni)."
+            },
+            {
+                id: "m1_9",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Ir. Soekarno menyampaikan bahwa jika lima sila Pancasila diperas menjadi satu prinsip tunggal (Ekasila), maka inti utama dari seluruh nilai Pancasila adalah...",
+                options: [
+                    "Gotong Royong",
+                    "Musyawarah",
+                    "Kerja Keras",
+                    "Kemerdekaan"
+                ],
+                correctIndex: 0,
+                explanation: "Ir. Soekarno menegaskan bahwa jiwa dari seluruh sila Pancasila adalah Semangat Gotong Royong."
+            },
+            {
+                id: "m1_10",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Untuk mengenang perjuangan para Pahlawan Revolusi dalam mempertahankan ideologi negara dari ancaman pemberontakan, pemerintah memperingati Hari Kesaktian Pancasila setiap tanggal...",
+                options: [
+                    "1 Juni",
+                    "17 Agustus",
+                    "1 Oktober",
+                    "10 November"
+                ],
+                correctIndex: 2,
+                explanation: "1 Juni adalah Hari Lahir Pancasila, sedangkan 1 Oktober diperingati sebagai Hari Kesaktian Pancasila."
+            },
+            {
+                id: "m1_11",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Tokoh pejuang kemerdekaan yang berjasa mengedit dan mengetik naskah Proklamasi Kemerdekaan Indonesia yang dibacakan pada 17 Agustus 1945 adalah...",
+                options: [
+                    "Sayuti Melik",
+                    "Sukarni",
+                    "Laksamana Maeda",
+                    "B.M. Diah"
+                ],
+                correctIndex: 0,
+                explanation: "Sayuti Melik adalah tokoh pemuda yang mengetik teks Proklamasi Kemerdekaan Indonesia setelah dirumuskan di rumah Laksamana Maeda."
+            },
+            {
+                id: "m1_12",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Pemerintah menetapkan tanggal 1 Juni sebagai hari libur nasional untuk mengenang momen lahirnya gagasan Pancasila. Keputusan Presiden yang menetapkan 1 Juni sebagai Hari Lahir Pancasila diterbitkan pada masa pemerintahan Presiden...",
+                options: [
+                    "Soeharto",
+                    "Megawati Soekarnoputri",
+                    "Joko Widodo",
+                    "Susilo Bambang Yudhoyono"
+                ],
+                correctIndex: 2,
+                explanation: "Penetapan Hari Lahir Pancasila sebagai libur nasional ditetapkan pada masa pemerintahan Presiden Joko Widodo"
+            },
+            {
+                id: "m1_13",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Dalam sidang BPUPKI, gagasan mengenai Kebangsaan Indonesia, Internasionalisme atau Peri Kemanusiaan dikemukakan dalam satu rangkaian pidato. Urutan gagasan tersebut disampaikan pada tanggal...",
+                options: [
+                    "29 Mei 1945",
+                    "30 Mei 1945",
+                    "31 Mei 1945",
+                    "1 Juni 1945"
+                ],
+                correctIndex: 3,
+                explanation: "Gagasan tersebut disampaikan oleh Soekarno pada sidang pertama BPUPKI, tepatnya pada tanggal 1 Juni 1945."
+            },
+            {
+                id: "m1_14",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Proses perumusan Pancasila melibatkan perdebatan panjang antar golongan kebangsaan dan golongan agama demi melahirkan konsensus nasional. Nilai utama yang diteladani dari para pendiri bangsa dalam peristiwa tersebut adalah...",
+                options: [
+                    "sikap egois dan mempertahankan pendapat",
+                    "mengutamakan kepentingan pribadi",
+                    "mengutamakan kepentingan bangsa di atas kepentingan kelompok",
+                    "menyerahkan keputusan pada pihak luar"
+                ],
+                correctIndex: 2,
+                explanation: "Para pendiri bangsa (founding fathers) menerapkan sikap nasionalisme dengan mengutamakan kepentingan bangsa dalam proses perumusan dasar negara."
+            },
+            {
+                id: "m1_15",
+                category: "sejarah",
+                categoryName: "Sejarah Kelahiran",
+                missionId: "m1",
+                content: "Aturan hukum resmi pemerintah yang menegaskan susunan dan tata urutan penulisan/pembacaan Pancasila yang benar hingga saat ini termaktub dalam Pembukaan UUD 1945 alinea ke...",
+                options: [
+                    "Alinea Pertama",
+                    "Alinea Kedua",
+                    "Alinea Ketiga",
+                    "Alinea Keempat"
+                ],
+                correctIndex: 3,
+                explanation: "Rumusan sah lima sila Pancasila tercantum secara resmi pada Pembukaan UUD 1945 Alinea Keempat."
+            },
+
+            // ---------------- MISI 2: MAKNA SIMBOL & GARUDA PANCASILA (15 SOAL SD) ----------------
+            {
+                id: "m2_1",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Lambang negara Indonesia adalah Garuda Pancasila. Siapakah tokoh nasional dari Pontianak yang pertama kali merancang lambang Garuda Pancasila tersebut?",
+                options: [
+                    "Sultan Hamid II",
+                    "Ki Hajar Dewantara",
+                    "Mr. Muhammad Yamin",
+                    "Ir. Soekarno"
+                ],
+                correctIndex: 0,
+                explanation: "Lambang Garuda Pancasila dirancang oleh Sultan Hamid II dari Kesultanan Pontianak dan kemudian disempurnakan oleh Presiden Soekarno."
+            },
+            {
+                id: "m2_2",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Pada perisai di dada Burung Garuda terdapat garis hitam tebal yang membentang melintang secara horizontal. Garis tebal tersebut melambangkan bahwa negara Indonesia...",
+                options: [
+                    "Dilintasi oleh garis khatulistiwa yang beriklim tropis",
+                    "Memiliki lautan yang sangat luas",
+                    "Merupakan negara dengan kekuatan militer terbesar",
+                    "Memiliki batas wilayah antar pulau"
+                ],
+                correctIndex: 0,
+                explanation: "Garis hitam tebal melintang pada perisai melambangkan lokasi geografis Indonesia yang dilintasi garis khatulistiwa."
+            },
+            {
+                id: "m2_3",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Simbol Bintang Emas dengan latar belakang warna hitam merupakan lambang Pancasila Sila Pertama. Bintang Emas tersebut memiliki makna...",
+                options: [
+                    "Cahaya kerohanian dari Tuhan Yang Maha Esa bagi seluruh manusia",
+                    "Kekayaan alam emas Indonesia yang melimpah",
+                    "Cita-cita menjadi negara terkuat di Asia",
+                    "Terangnya masa depan anak-anak Indonesia"
+                ],
+                correctIndex: 0,
+                explanation: "Bintang emas bersudut lima melambangkan cahaya kerohanian dari Tuhan Yang Maha Esa bagi setiap manusia."
+            },
+            {
+                id: "m2_4",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Simbol Sila Kedua 'Kemanusiaan yang Adil dan Beradab' adalah Mata Rantai. Rantai tersebut terdiri atas gelang berbentuk persegi dan lingkaran yang saling menyambung. Gelang persegi melambangkan...",
+                options: [
+                    "Laki-laki",
+                    "Perempuan",
+                    "Pemerintah",
+                    "Anak-anak"
+                ],
+                correctIndex: 0,
+                explanation: "Gelang persegi melambangkan laki-laki, sedangkan gelang lingkaran melambangkan perempuan. Keduanya bersatu dan saling membutuhkan."
+            },
+            {
+                id: "m2_5",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Pohon Beringin digunakan sebagai lambang Sila Ketiga 'Persatuan Indonesia'. Makna sulur dan akar Pohon Beringin yang menjalar ke berbagai arah adalah...",
+                options: [
+                    "Keberagaman suku bangsa dan budaya Indonesia yang menyatu di bawah naungan NKRI",
+                    "Kekuatan ekonomi masyarakat Indonesia",
+                    "Banyaknya hutan lebat di Indonesia",
+                    "Usia Indonesia yang terus bertambah"
+                ],
+                correctIndex: 0,
+                explanation: "Akar dan sulur beringin melambangkan suku-suku bangsa di Indonesia yang beragam namun tetap bersatu meneduh di bawah Indonesia."
+            },
+            {
+                id: "m2_6",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Sila Keempat 'Kerakyatan yang Dipimpin oleh Hikmat Kebijaksanaan dalam Permusyawaratan/Perwakilan' dilambangkan dengan Kepala Banteng. Banteng dipilih karena memiliki sifat...",
+                options: [
+                    "Hewan sosial yang suka berkumpul untuk bermusyawarah",
+                    "Hewan yang paling cepat berlari di hutan",
+                    "Hewan yang suka bekerja mencari makan sendiri",
+                    "Hewan langka khas Nusantara"
+                ],
+                correctIndex: 0,
+                explanation: "Banteng merupakan hewan sosial yang gemar berkumpul, melambangkan kebiasaan rakyat Indonesia yang suka berkumpul untuk musyawarah mufakat."
+            },
+            {
+                id: "m2_7",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Simbol Padi dan Kapas melambangkan Sila Kelima 'Keadilan Sosial bagi Seluruh Rakyat Indonesia'. Padi dan Kapas melambangkan kebutuhan dasar manusia berupa...",
+                options: [
+                    "Pangan (makanan) dan Sandang (pakaian) demi kemakmuran",
+                    "Rumah dan Kendaraan",
+                    "Pendidikan dan Kesehatan",
+                    "Uang dan Emas"
+                ],
+                correctIndex: 0,
+                explanation: "Padi melambangkan pangan (makanan) dan Kapas melambangkan sandang (pakaian) sebagai syarat utama mencapai kemakmuran merata."
+            },
+            {
+                id: "m2_8",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Jumlah bulu pada setiap sayap Burung Garuda Pancasila berjumlah 17 helai. Angka 17 ini melambangkan...",
+                options: [
+                    "Tanggal kemerdekaan Republik Indonesia",
+                    "Bulan kemerdekaan Indonesia",
+                    "Jumlah provinsi pertama Indonesia",
+                    "Jumlah pahlawan nasional"
+                ],
+                correctIndex: 0,
+                explanation: "17 helai bulu di setiap sayap melambangkan tanggal 17 sebagai hari Kemerdekaan RI."
+            },
+            {
+                id: "m2_9",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Berapakah jumlah helai bulu pada leher Burung Garuda Pancasila yang melambangkan tahun kemerdekaan Indonesia?",
+                options: [
+                    "45 helai",
+                    "19 helai",
+                    "8 helai",
+                    "17 helai"
+                ],
+                correctIndex: 0,
+                explanation: "Bulu leher berjumlah 45 helai dan bulu di bawah perisai/pangkal ekor berjumlah 19 helai, yang jika digabung melambangkan tahun 1945."
+            },
+            {
+                id: "m2_10",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Berapakah jumlah helai bulu pada ekor Burung Garuda yang melambangkan bulan Agustus sebagai bulan kemerdekaan Indonesia?",
+                options: [
+                    "8 helai",
+                    "17 helai",
+                    "19 helai",
+                    "45 helai"
+                ],
+                correctIndex: 0,
+                explanation: "8 helai bulu pada ekor melambangkan bulan 8 (Agustus)."
+            },
+            {
+                id: "m2_11",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Kaki Burung Garuda mencengkeram erat sehelai pita putih bertuliskan semboyan 'Bhinneka Tunggal Ika'. Arti dari semboyan Bhinneka Tunggal Ika adalah...",
+                options: [
+                    "Berbeda-beda tetapi tetap satu jua",
+                    "Bersatu kita teguh bercerai kita runtuh",
+                    "Majulah tanpa menyingkirkan orang lain",
+                    "Berani karena benar takut karena salah"
+                ],
+                correctIndex: 0,
+                explanation: "Bhinneka Tunggal Ika berarti meskipun berbeda suku, agama, dan budaya, bangsa Indonesia tetap satu jua."
+            },
+            {
+                id: "m2_12",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Semboyan 'Bhinneka Tunggal Ika' pada pita putih yang dicengkeram garuda Pancasila pertama kali diciptakan oleh seorang pujangga Kerajaan Majapahit bernama Empu Tantular yang tertuang dalam kitab...",
+                options: [
+                    "Kitab Sutasoma",
+                    "Kitab Negarakertagama",
+                    "Kitab Arjuna Wiwaha",
+                    "Kitab Baratayuda"
+                ],
+                correctIndex: 0,
+                explanation: "Semboyan persatuan Bhinneka Tunggal Ika dipetik dari Kakawin Sutasoma karya Empu Tantular."
+            },
+            {
+                id: "m2_13",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Kepala Burung Garuda Pancasila selalu menoleh ke arah kanan. Secara filosofis dan budaya Indonesia, arah kanan mengandung makna...",
+                options: [
+                    "Kebaikan, Kebenaran, dan Jalan yang Lurus",
+                    "Keberanian untuk berperang",
+                    "Arah terbitnya matahari",
+                    "Kepatuhan pada hukum internasional"
+                ],
+                correctIndex: 0,
+                explanation: "Kepala menoleh ke kanan melambangkan pemikiran yang positif, kebaikan, dan kebenaran."
+            },
+            {
+                id: "m2_14",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Warna keemasan (kuning emas) pada tubuh Burung Garuda Pancasila melambangkan...",
+                options: [
+                    "Keagungan, Kejayaan, dan Keluhuran Bangsa",
+                    "Keberanian para prajurit",
+                    "Kesucian hati para pahlawan",
+                    "Suburnya tanah Indonesia"
+                ],
+                correctIndex: 0,
+                explanation: "Warna kuning emas melambangkan kejayaan dan keagungan bangsa Indonesia."
+            },
+            {
+                id: "m2_15",
+                category: "simbol",
+                categoryName: "Simbol & Lambang",
+                missionId: "m2",
+                content: "Warna merah dan putih pada ruang perisai Garuda Pancasila diambil dari warna bendera nasional Indonesia yang melambangkan...",
+                options: [
+                    "Merah melambangkan keberanian, Putih melambangkan kesucian",
+                    "Merah melambangkan daratan, Putih melambangkan lautan",
+                    "Merah melambangkan kekuatan, Putih melambangkan perdamaian",
+                    "Merah melambangkan kekayaan, Putih melambangkan kejujuran"
+                ],
+                correctIndex: 0,
+                explanation: "Warna merah melambangkan keberanian dan warna putih melambangkan kesucian."
+            },
+
+            // ---------------- MISI 3: NILAI & PENGAMALAN PANCASILA (15 SOAL SD) ----------------
+            {
+                id: "m3_1",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Di kelas 5 SD, para siswa berasal dari latar belakang agama yang berbeda. Saat tiba waktu beribadah, Beni menghormati teman-temannya yang hendak beribadah dan tidak mengganggu ketenangan. Perilaku Beni merupakan contoh pengamalan Pancasila Sila ke...",
+                options: [
+                    "Sila ke-1 (Ketuhanan Yang Maha Esa)",
+                    "Sila ke-2 (Kemanusiaan yang Adil dan Beradab)",
+                    "Sila ke-3 (Persatuan Indonesia)",
+                    "Sila ke-4 (Kerakyatan yang Dipimpin...)"
+                ],
+                correctIndex: 0,
+                explanation: "Saling menghormati kebebasan beribadah sesuai agama dan kepercayaan masing-masing adalah pengamalan Sila ke-1."
+            },
+            {
+                id: "m3_2",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Ketika melihat seorang teman sekelas terjatuh dari sepeda dan terluka, Edo segera menolongnya serta membawanya ke ruang UKS. Tindakan kemanusiaan dan kepedulian Edo ini merupakan contoh pengamalan Pancasila Sila ke...",
+                options: [
+                    "Sila ke-1",
+                    "Sila ke-2",
+                    "Sila ke-3",
+                    "Sila ke-5"
+                ],
+                correctIndex: 1,
+                explanation: "Menolong sesama, gemar melakukan kegiatan kemanusiaan, serta bersikap kasih sayang adalah wujud pengamalan Sila ke-2."
+            },
+            {
+                id: "m3_3",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Siti dan keluarganya sangat bangga mengenakan baju batik buatan pengrajin lokal Indonesia saat pergi ke acara keluarga. Rasa bangga dan cinta terhadap produk dalam negeri ini merupakan contoh pengamalan Sila ke...",
+                options: [
+                    "Sila ke-1",
+                    "Sila ke-2",
+                    "Sila ke-3",
+                    "Sila ke-4"
+                ],
+                correctIndex: 2,
+                explanation: "Cinta tanah air dan bangga menggunakan produk hasil karya bangsa Indonesia adalah bentuk pengamalan Sila ke-3."
+            },
+            {
+                id: "m3_4",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Untuk menentukan ketua kelas yang baru, murid-murid kelas 4 SD mengadakan diskusi bersama dan pemungutan suara secara adil. Sikap mengutamakan musyawarah untuk mufakat ini adalah pengamalan Sila ke...",
+                options: [
+                    "Sila ke-2",
+                    "Sila ke-3",
+                    "Sila ke-4",
+                    "Sila ke-5"
+                ],
+                correctIndex: 2,
+                explanation: "Mengutamakan musyawarah dan diskusi dalam mengambil keputusan bersama merupakan pengamalan Sila ke-4."
+            },
+            {
+                id: "m3_5",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Siswa di sekolah rajin menyisihkan uang saku untuk menabung, tidak bersikap boros, serta selalu menghargai hasil karya teman lain. Sikap hidup hemat dan adil ini merupakan contoh pengamalan Pancasila Sila ke...",
+                options: [
+                    "Sila ke-5",
+                    "Sila ke-3",
+                    "Sila ke-2",
+                    "Sila ke-1"
+                ],
+                correctIndex: 0,
+                explanation: "Tidak bergaya hidup mewah, bersikap hemat, dan menghargai karya orang lain merupakan pengamalan Sila ke-5."
+            },
+            {
+                id: "m3_6",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Andi tidak pernah membeda-bedakan teman berdasarkan suku, warna kulit, atau status sosial saat bermain di lapangan sekolah. Perilaku Andi menegakkan nilai persamaan derajat manusia pada Sila ke...",
+                options: [
+                    "Sila ke-2",
+                    "Sila ke-1",
+                    "Sila ke-4",
+                    "Sila ke-5"
+                ],
+                correctIndex: 0,
+                explanation: "Mengakui persamaan derajat, hak, dan kewajiban sesama manusia tanpa membeda-bedakan adalah poin Sila ke-2."
+            },
+            {
+                id: "m3_7",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Setiap hari Minggu pagi, warga desa bergotong-royong membersihkan selokan dan saluran air agar lingkungan bersih dari sampah dan terhindar dari banjir. Kegiatan kerja bakti ini mencerminkan Sila ke...",
+                options: [
+                    "Sila ke-3",
+                    "Sila ke-1",
+                    "Sila ke-2",
+                    "Sila ke-4"
+                ],
+                correctIndex: 0,
+                explanation: "Gotong-royong dan kerja bakti menjaga kebersihan lingkungan bersama mempererat persatuan, sesuai Sila ke-3."
+            },
+            {
+                id: "m3_8",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Saat hasil keputusan rapat musyawarah kelas tidak sesuai dengan usulan pribadinya, Lani tetap mau menerima dan melaksanakannya dengan ikhlas dan penuh rasa tanggung jawab. Sikap Lani merupakan pengamalan Sila ke...",
+                options: [
+                    "Sila ke-4",
+                    "Sila ke-1",
+                    "Sila ke-3",
+                    "Sila ke-2"
+                ],
+                correctIndex: 0,
+                explanation: "Menerima dan melaksanakan hasil keputusan musyawarah dengan ikhlas dan bertanggung jawab adalah kewajiban Sila ke-4."
+            },
+            {
+                id: "m3_9",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Doni selalu mematuhi rambu-rambu lalu lintas dan menyeberang jalan melalui zebra cross demi keselamatan bersama. Mematuhi aturan umum dan menjaga ketertiban umum merupakan wujud pengamalan Sila ke...",
+                options: [
+                    "Sila ke-5",
+                    "Sila ke-1",
+                    "Sila ke-3",
+                    "Sila ke-4"
+                ],
+                correctIndex: 0,
+                explanation: "Menjaga keseimbangan antara hak dan kewajiban serta taat hukum/aturan umum merupakan bentuk pengamalan Sila ke-5."
+            },
+            {
+                id: "m3_10",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Ketika membaca sebuah berita yang belum pasti kebenarannya di media sosial, Budi tidak langsung menyebarkannya agar tidak terjadi permusuhan antar teman. Sikap Budi ini menjaga persatuan sesuai Sila ke...",
+                options: [
+                    "Sila ke-3",
+                    "Sila ke-1",
+                    "Sila ke-2",
+                    "Sila ke-4"
+                ],
+                correctIndex: 0,
+                explanation: "Mencegah perpecahan dan memelihara kerukunan bangsa adalah penerapan Sila ke-3."
+            },
+            {
+                id: "m3_11",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Saat mengikuti upacara bendera hari Senin di sekolah, para siswa berdiri tegak dan mendengarkan pembacaan teks Pancasila serta mengheningkan cipta dengan khidmat. Perilaku ini mencerminkan rasa...",
+                options: [
+                    "Cinta tanah air dan menghargai jasa para pahlawan",
+                    "Tanggung jawab menyelesaikan tugas kelas",
+                    "Disiplin dalam belajar kelompok",
+                    "Ketaatan pada perintah orang tua"
+                ],
+                correctIndex: 0,
+                explanation: "Khidmat saat upacara bendera merupakan wujud rasa cinta tanah air dan wawasan kebangsaan."
+            },
+            {
+                id: "m3_12",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Ketika daerah lain tertimpa musibah bencana alam, murid-murid SD mengumpulkan bantuan baju layak pakai, obat-obatan, dan donasi uang untuk dikirimkan kepada para korban. Sikap solidaritas ini mengamalkan Sila ke...",
+                options: [
+                    "Sila ke-2",
+                    "Sila ke-1",
+                    "Sila ke-4",
+                    "Sila ke-3"
+                ],
+                correctIndex: 0,
+                explanation: "Gemar memberikan bantuan kemanusiaan kepada korban bencana alam adalah contoh konkret pengamalan Sila ke-2."
+            },
+            {
+                id: "m3_13",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Di kantin sekolah, Pak Guru membagi giliran antrean makanan secara adil tanpa membeda-bedakan murid kelas kecil maupun murid kelas besar. Prinsip keadilan ini sesuai dengan Sila ke...",
+                options: [
+                    "Sila ke-5",
+                    "Sila ke-1",
+                    "Sila ke-3",
+                    "Sila ke-4"
+                ],
+                correctIndex: 0,
+                explanation: "Bersikap adil terhadap sesama dan menghargai hak antrean orang lain merupakan poin Sila ke-5."
+            },
+            {
+                id: "m3_14",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Saat ada teman yang menyampaikan pendapat saat diskusi kelompok, Rian mendengarkan dengan tenang dan tidak memotong pembicaraan. Sikap Rian menghargai pendapat orang lain ini sesuai Sila ke...",
+                options: [
+                    "Sila ke-4",
+                    "Sila ke-1",
+                    "Sila ke-3",
+                    "Sila ke-5"
+                ],
+                correctIndex: 0,
+                explanation: "Menghargai pendapat orang lain saat berdiskusi atau bermusyawarah adalah ciri pengamalan Sila ke-4."
+            },
+            {
+                id: "m3_15",
+                category: "pengamalan",
+                categoryName: "Pengamalan Sila",
+                missionId: "m3",
+                content: "Setiap sebelum dan sesudah belajar di kelas, ketua kelas memimpin doa bersama sesuai dengan kepercayaannya masing-masing. Kebiasaan berdoa ini mencerminkan penerapan Sila ke...",
+                options: [
+                    "Sila ke-1",
+                    "Sila ke-2",
+                    "Sila ke-3",
+                    "Sila ke-4"
+                ],
+                correctIndex: 0,
+                explanation: "Membiasakan berdoa sebelum dan sesudah beraktivitas adalah wujud pengamalan Sila ke-1."
+            },
+
+            // ---------------- MISI 4: UJIAN KOMBINASI & WAWASAN KEBANGSAAN (15 SOAL SD) ----------------
+            {
+                id: "m4_1",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Dasar negara Indonesia adalah Pancasila yang resmi disahkan dalam sidang PPKI pada tanggal...",
+                options: [
+                    "18 Agustus 1945",
+                    "17 Agustus 1945",
+                    "1 Juni 1945",
+                    "22 Juni 1945"
+                ],
+                correctIndex: 0,
+                explanation: "PPKI resmi mengesahkan Pancasila sebagai dasar negara pada tanggal 18 Agustus 1945."
+            },
+            {
+                id: "m4_2",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Lagu kebangsaan Indonesia Raya diciptakan oleh seorang komponis nasional bernama...",
+                options: [
+                    "W.R. Supratman",
+                    "Ismail Marzuki",
+                    "Ibu Sud",
+                    "C. Simanjuntak"
+                ],
+                correctIndex: 0,
+                explanation: "Lagu Indonesia Raya diciptakan oleh Wage Rudolf Supratman dan pertama kali dimainkan saat peristiwa Sumpah Pemuda 1928."
+            },
+            {
+                id: "m4_3",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Berapakah jumlah helai bulu pada masing-masing sayap Burung Garuda Pancasila?",
+                options: [
+                    "17 helai",
+                    "8 helai",
+                    "19 helai",
+                    "45 helai"
+                ],
+                correctIndex: 0,
+                explanation: "Jumlah bulu sayap Garuda adalah 17 helai, menandakan tanggal Kemerdekaan RI."
+            },
+            {
+                id: "m4_4",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Tokoh wanita pejuang kemerdekaan yang pertama kali menjahit Bendera Pusaka Sang Saka Merah Putih adalah...",
+                options: [
+                    "Ibu Fatmawati",
+                    "R.A. Kartini",
+                    "Cut Nyak Dien",
+                    "Dewi Sartika"
+                ],
+                correctIndex: 0,
+                explanation: "Ibu Fatmawati (istri Presiden Soekarno) adalah tokoh yang menjahit Bendera Merah Putih pertama."
+            },
+            {
+                id: "m4_5",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Peristiwa bersejarah saat para pemuda Indonesia mengumandangkan janji 'Satu Nusa, Satu Bangsa, dan Satu Bahasa' pada tanggal 28 Oktober 1928 dikenal dengan nama...",
+                options: [
+                    "Sumpah Pemuda",
+                    "Proklamasi Kemerdekaan",
+                    "Hari Pahlawan",
+                    "Hari Kebangkitan Nasional"
+                ],
+                correctIndex: 0,
+                explanation: "Sumpah Pemuda dicetuskan pada 28 Oktober 1928 sebagai ikrar persatuan seluruh pemuda Indonesia."
+            },
+            {
+                id: "m4_6",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Simbol Pohon Beringin pada dada Burung Garuda melambangkan sila Pancasila yang berbunyi...",
+                options: [
+                    "Persatuan Indonesia",
+                    "Ketuhanan Yang Maha Esa",
+                    "Kemanusiaan yang Adil dan Beradab",
+                    "Keadilan Sosial Bagi Seluruh Rakyat Indonesia"
+                ],
+                correctIndex: 0,
+                explanation: "Pohon Beringin adalah simbol Sila Ketiga 'Persatuan Indonesia'."
+            },
+            {
+                id: "m4_7",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Sebagai seorang pelajar SD, cara paling tepat yang dapat kamu lakukan untuk ikut serta dalam bela negara di lingkungan sekolah adalah...",
+                options: [
+                    "Mentaati tata tertib sekolah dan belajar dengan tekun",
+                    "Ikut serta dalam latihan kemiliteran",
+                    "Menjaga pos ronda malam",
+                    "Bekerja mencari nafkah"
+                ],
+                correctIndex: 0,
+                explanation: "Bagi siswa sekolah, bentuk bela negara utama adalah belajar tekun, disiplin, dan mematuhi aturan."
+            },
+            {
+                id: "m4_8",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Pahlawan nasional yang dikenal sebagai Bapak Pendidikan Nasional Indonesia dan memiliki semboyan 'Tut Wuri Handayani' adalah...",
+                options: [
+                    "Ki Hajar Dewantara",
+                    "Ir. Soekarno",
+                    "Drs. Mohammad Hatta",
+                    "Pangeran Diponegoro"
+                ],
+                correctIndex: 0,
+                explanation: "Ki Hajar Dewantara (Suwardi Suryoningrat) adalah Bapak Pendidikan Nasional pendiri Taman Siswa."
+            },
+            {
+                id: "m4_9",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Hari Pahlawan diperingati setiap tanggal 10 November untuk mengenang keberanian rakyat dalam pertempuran mempertahankan kemerdekaan di kota...",
+                options: [
+                    "Surabaya",
+                    "Bandung",
+                    "Jakarta",
+                    "Yogyakarta"
+                ],
+                correctIndex: 0,
+                explanation: "Pertempuran Surabaya 10 November 1945 diperingati sebagai Hari Pahlawan."
+            },
+            {
+                id: "m4_10",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Pernyataan yang BENAR mengenai simbol dan sila dalam Pancasila adalah...",
+                options: [
+                    "Bintang = Sila 1, Rantai = Sila 2, Pohon Beringin = Sila 3",
+                    "Bintang = Sila 2, Rantai = Sila 1, Pohon Beringin = Sila 3",
+                    "Banteng = Sila 5, Padi Kapas = Sila 4",
+                    "Pohon Beringin = Sila 1, Bintang = Sila 3"
+                ],
+                correctIndex: 0,
+                explanation: "Urutan simbol: 1. Bintang, 2. Rantai, 3. Pohon Beringin, 4. Kepala Banteng, 5. Padi dan Kapas."
+            },
+            {
+                id: "m4_11",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Lembaga negara yang bertugas membuat dan mengesahkan undang-undang bersama Presiden di Indonesia adalah...",
+                options: [
+                    "DPR (Dewan Perwakilan Rakyat)",
+                    "MA (Mahkamah Agung)",
+                    "KPU (Komisi Pemilihan Umum)",
+                    "BPK (Badan Pemeriksa Keuangan)"
+                ],
+                correctIndex: 0,
+                explanation: "DPR merupakan lembaga legislatif yang bertugas membuat undang-undang."
+            },
+            {
+                id: "m4_12",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Garis batas wilayah Indonesia berada di antara dua samudra luas, yaitu...",
+                options: [
+                    "Samudra Hindia dan Samudra Pasifik",
+                    "Samudra Atlantik dan Samudra Pasifik",
+                    "Samudra Arktik dan Samudra Hindia",
+                    "Samudra Atlantik dan Samudra Hindia"
+                ],
+                correctIndex: 0,
+                explanation: "Indonesia diapit secara strategis oleh Samudra Hindia dan Samudra Pasifik."
+            },
+            {
+                id: "m4_13",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Jika dalam musyawarah pemilihan ketua kelas tidak dicapai kesepakatan mufakat secara bulat, maka cara penyelesaian yang adil dan demokratis adalah...",
+                options: [
+                    "Pemilihan suara terbanyak (voting)",
+                    "Ditentukan sendiri oleh siswa yang paling tua",
+                    "Dibatalkan dan tidak jadi memilih ketua",
+                    "Dipilih berdasarkan siswa yang paling kaya"
+                ],
+                correctIndex: 0,
+                explanation: "Jika musyawarah mufakat tidak tercapai, keputusan diambil melalui voting (suara terbanyak)."
+            },
+            {
+                id: "m4_14",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Semboyan Tentara Nasional Indonesia Angkatan Darat (TNI AD) yang berasal dari bahasa Sanskerta adalah...",
+                options: [
+                    "Kartika Eka Paksi",
+                    "Jalesveva Jayamahe",
+                    "Swa Bhuwana Paksa",
+                    "Bhinneka Tunggal Ika"
+                ],
+                correctIndex: 0,
+                explanation: "Kartika Eka Paksi adalah semboyan TNI AD yang artinya 'Bintang Perkasa yang Tiada Tanding'."
+            },
+            {
+                id: "m4_15",
+                category: "kombinasi",
+                categoryName: "Misi Kombinasi",
+                missionId: "m4",
+                content: "Perhatikan hak dan kewajiban anak! Hak seorang anak saat berada di rumah adalah...",
+                options: [
+                    "Mendapatkan kasih sayang dan perlindungan dari orang tua",
+                    "Membantu membersihkan seluruh isi rumah sendirian",
+                    "Mematuhi nasehat orang tua",
+                    "Belajar dengan rajin"
+                ],
+                correctIndex: 0,
+                explanation: "Mendapatkan kasih sayang dan perlindungan adalah 'Hak' anak, sedangkan membantu orang tua dan belajar adalah 'Kewajiban'."
+            }
+        ];
+
+        /* ==========================================================================
+           2. MISSION ZONES DEFINITION
+           ========================================================================== */
+        const MISSIONS = [
+            {
+                id: "m1",
+                title: "Lembah Sejarah Kelahiran",
+                category: "sejarah",
+                icon: "fa-landmark-flag",
+                color: "from-red-600 to-amber-600",
+                description: "Jelajahi rekam jejak BPUPKI, PPKI, Piagam Jakarta, hingga pengesahan Pancasila 1945.",
+                totalQ: 15
+            },
+            {
+                id: "m2",
+                title: "Benteng Simbol Garuda",
+                category: "simbol",
+                icon: "fa-shield-cat",
+                color: "from-amber-500 to-yellow-600",
+                description: "Pelajari makna 5 simbol sila, perisai, jumlah bulu 17-8-1945, & Bhinneka Tunggal Ika.",
+                totalQ: 15
+            },
+            {
+                id: "m3",
+                title: "Kota Pengamalan Nyata",
+                category: "pengamalan",
+                icon: "fa-hands-holding-circle",
+                color: "from-emerald-600 to-teal-600",
+                description: "Uji penerapan nilai luhur Pancasila Sila 1 sampai 5 dalam contoh kasus sehari-hari.",
+                totalQ: 15
+            },
+            {
+                id: "m4",
+                title: "Ujian Kehormatan Garuda",
+                category: "kombinasi",
+                icon: "fa-crown",
+                color: "from-purple-600 to-indigo-700",
+                description: "Tantangan Kombinasi! Uji seluruh wawasan kebangsaanmu untuk meraih gelar Maestro Garuda.",
+                totalQ: 15
+            }
+        ];
+
+
+        /* ==========================================================================
+           3. APPLICATION STATE & AUDIO SYNTHESIZER
+           ========================================================================== */
+        let state = {
+            player: {
+                name: "Satria",
+                classGrade: "Kelas 5 SD/MI",
+                xp: 0,
+                lives: 3,
+                rank: "Taruna Pancasila"
+            },
+            completedMissions: {},
+            currentMission: null,
+            currentQuestionIndex: 0,
+            missionQuestions: [],
+            missionScore: 0,
+            audioEnabled: true
+        };
+
+        const AudioFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playCorrect() {
+                if (!state.audioEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            },
+            playWrong() {
+                if (!state.audioEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            },
+            playFanfare() {
+                if (!state.audioEnabled) return;
+                this.init();
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    const now = this.ctx.currentTime + (i * 0.1);
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                });
+            }
+        };
+
+
+        /* ==========================================================================
+           4. CORE APP CONTROLLERS
+           ========================================================================== */
+        window.onload = function() {
+            loadSavedProgress();
+            renderQuestMap();
+            renderLibraryItems('all');
+        };
+
+        function loadSavedProgress() {
+            const saved = localStorage.getItem('satria_pancasila_sd_progress');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state.player = parsed.player || state.player;
+                    state.completedMissions = parsed.completedMissions || {};
+                    updateHUD();
+                } catch(e) { console.error("Error loading progress", e); }
+            }
+        }
+
+        function saveProgress() {
+            localStorage.setItem('satria_pancasila_sd_progress', JSON.stringify({
+                player: state.player,
+                completedMissions: state.completedMissions
+            }));
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-player-name').innerText = state.player.name;
+            document.getElementById('hud-player-rank').innerText = calculateRank(state.player.xp);
+            document.getElementById('hud-xp').innerText = `${state.player.xp} XP`;
+            document.getElementById('hud-lives').innerText = `${state.player.lives}/3`;
+            document.getElementById('player-hud').classList.remove('hidden');
+        }
+
+        function calculateRank(xp) {
+            if (xp >= 500) return "Maestro Garuda";
+            if (xp >= 300) return "Ksatria Pancasila";
+            if (xp >= 150) return "Perwira Muda";
+            return "Taruna Pancasila";
+        }
+
+        function handleStartGame(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('player-name-input').value.trim();
+            const classInput = document.getElementById('player-class-input').value;
+            
+            if (nameInput) {
+                state.player.name = nameInput;
+                state.player.classGrade = classInput;
+                saveProgress();
+                updateHUD();
+                showScreen('map-screen');
+            }
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.view-screen').forEach(el => el.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+            
+            if (screenId === 'map-screen') {
+                renderQuestMap();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+
+        /* ==========================================================================
+           5. QUEST MAP RENDERER
+           ========================================================================== */
+        function renderQuestMap() {
+            const container = document.getElementById('quest-cards-container');
+            container.innerHTML = '';
+
+            let totalCompleted = Object.keys(state.completedMissions).length;
+            let totalMissions = MISSIONS.length;
+            let progressPercent = Math.round((totalCompleted / totalMissions) * 100);
+
+            document.getElementById('overall-progress-text').innerText = `${progressPercent}%`;
+            document.getElementById('overall-progress-bar').style.width = `${progressPercent}%`;
+
+            MISSIONS.forEach((m, idx) => {
+                const isCompleted = !!state.completedMissions[m.id];
+                const isUnlocked = idx === 0 || !!state.completedMissions[MISSIONS[idx - 1].id];
+                const stats = state.completedMissions[m.id] || { score: 0, total: 15, stars: 0 };
+
+                const cardHtml = `
+                    <div class="quest-card bg-slate-800/90 border ${isUnlocked ? 'border-amber-500/40 hover:border-amber-400' : 'border-slate-700/50 opacity-60'} rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden backdrop-blur-sm">
+                        
+                        ${isCompleted ? `
+                            <div class="absolute top-3 right-3 bg-emerald-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-check"></i> SELESAI
+                            </div>
+                        ` : ''}
+
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr ${m.color} flex items-center justify-center text-white text-2xl mb-4 shadow-lg">
+                                <i class="fa-solid ${m.icon}"></i>
+                            </div>
+
+                            <h3 class="text-lg font-bold text-white mb-2 leading-tight">${m.title}</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed mb-4">${m.description}</p>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center space-x-1 text-amber-400 text-sm mb-4">
+                                ${[1, 2, 3].map(star => `
+                                    <i class="fa-${star <= stats.stars ? 'solid' : 'regular'} fa-star"></i>
+                                `).join('')}
+                                <span class="text-xs text-slate-400 ml-2">(${stats.score}/${m.totalQ})</span>
+                            </div>
+
+                            ${isUnlocked ? `
+                                <button onclick="startMission('${m.id}')" class="w-full py-2.5 rounded-xl bg-gradient-to-r ${m.color} hover:brightness-110 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2">
+                                    <span>${isCompleted ? 'MAIN ULANG' : 'MULAI MISI'}</span>
+                                    <i class="fa-solid fa-play"></i>
+                                </button>
+                            ` : `
+                                <button disabled class="w-full py-2.5 rounded-xl bg-slate-900 text-slate-500 font-bold text-xs cursor-not-allowed border border-slate-700 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-lock"></i>
+                                    <span>TERKUNCI</span>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        }
+
+
+        /* ==========================================================================
+           6. MISSION GAMEPLAY ENGINE (Integrated Question Display)
+           ========================================================================== */
+        function startMission(missionId) {
+            const mission = MISSIONS.find(m => m.id === missionId);
+            if (!mission) return;
+
+            state.currentMission = mission;
+            state.currentQuestionIndex = 0;
+            state.missionScore = 0;
+            state.player.lives = 3;
+
+            // Retrieve all 15 questions for the selected mission
+            state.missionQuestions = QUESTION_BANK.filter(q => q.category === mission.category);
+
+            updateHUD();
+            showScreen('mission-screen');
+            renderCurrentQuestion();
+        }
+
+        function renderCurrentQuestion() {
+            const q = state.missionQuestions[state.currentQuestionIndex];
+            const total = state.missionQuestions.length;
+
+            document.getElementById('mission-category-badge').innerText = q.categoryName.toUpperCase();
+            document.getElementById('mission-title-text').innerText = `${state.currentMission.title}`;
+            document.getElementById('question-tracker').innerText = `${state.currentQuestionIndex + 1} / ${total}`;
+
+            // INTEGRATED VIEW: Single Question Box
+            document.getElementById('integrated-question-box').innerHTML = q.content;
+
+            // Reset Feedback Box
+            const feedbackBox = document.getElementById('feedback-box');
+            feedbackBox.classList.add('hidden');
+            feedbackBox.className = 'hidden p-4 rounded-xl border mb-6 transition-all';
+
+            // Reset Next Button
+            const nextBtn = document.getElementById('next-question-btn');
+            nextBtn.disabled = true;
+            nextBtn.className = 'px-6 py-2.5 rounded-xl bg-slate-700 text-slate-400 font-bold text-sm cursor-not-allowed transition flex items-center gap-2';
+
+            // Render Option Buttons
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const optBtn = document.createElement('button');
+                optBtn.className = 'option-btn text-left p-4 rounded-xl bg-slate-900/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-xs md:text-sm font-medium transition flex items-start gap-3 group';
+                optBtn.onclick = () => selectOption(idx);
+
+                const letter = String.fromCharCode(65 + idx);
+                optBtn.innerHTML = `
+                    <span class="w-6 h-6 rounded-md bg-slate-800 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-amber-500 group-hover:text-slate-950 transition">
+                        ${letter}
+                    </span>
+                    <span class="pt-0.5 leading-relaxed">${opt}</span>
+                `;
+                optionsContainer.appendChild(optBtn);
+            });
+        }
+
+        function selectOption(selectedIndex) {
+            const q = state.missionQuestions[state.currentQuestionIndex];
+            const isCorrect = selectedIndex === q.correctIndex;
+
+            const optionBtns = document.querySelectorAll('.option-btn');
+            optionBtns.forEach((btn, idx) => {
+                btn.onclick = null;
+                if (idx === q.correctIndex) {
+                    btn.classList.remove('bg-slate-900/80', 'border-slate-700');
+                    btn.classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-200');
+                } else if (idx === selectedIndex && !isCorrect) {
+                    btn.classList.remove('bg-slate-900/80', 'border-slate-700');
+                    btn.classList.add('bg-red-950/80', 'border-red-500', 'text-red-200');
+                } else {
+                    btn.classList.add('opacity-40');
+                }
+            });
+
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackExp = document.getElementById('feedback-explanation');
+
+            if (isCorrect) {
+                AudioFX.playCorrect();
+                state.missionScore++;
+                state.player.xp += 10;
+                feedbackBox.className = 'p-4 rounded-xl bg-emerald-950/70 border border-emerald-500/50 mb-6 block text-emerald-200';
+                feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i> <span>Jawaban Kamu Tepat Sekali! (+10 XP)</span>`;
+            } else {
+                AudioFX.playWrong();
+                state.player.lives = Math.max(0, state.player.lives - 1);
+                feedbackBox.className = 'p-4 rounded-xl bg-red-950/70 border border-red-500/50 mb-6 block text-red-200';
+                feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-400 text-lg"></i> <span>Jawaban Kurang Tepat!</span>`;
+            }
+
+            feedbackExp.innerText = q.explanation;
+            feedbackBox.classList.remove('hidden');
+
+            updateHUD();
+
+            const nextBtn = document.getElementById('next-question-btn');
+            nextBtn.disabled = false;
+            nextBtn.className = 'px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-extrabold text-sm shadow-lg hover:from-amber-400 hover:to-yellow-400 transition flex items-center gap-2 cursor-pointer';
+        }
+
+        function nextQuestion() {
+            if (state.currentQuestionIndex < state.missionQuestions.length - 1) {
+                state.currentQuestionIndex++;
+                renderCurrentQuestion();
+            } else {
+                finishMission();
+            }
+        }
+
+
+        /* ==========================================================================
+           7. MISSION SUMMARY & EVALUATION
+           ========================================================================== */
+        function finishMission() {
+            AudioFX.playFanfare();
+            const total = state.missionQuestions.length;
+            const accuracy = Math.round((state.missionScore / total) * 100);
+            let stars = 1;
+            if (accuracy >= 80) stars = 3;
+            else if (accuracy >= 60) stars = 2;
+
+            state.completedMissions[state.currentMission.id] = {
+                score: state.missionScore,
+                total: total,
+                stars: stars
+            };
+
+            saveProgress();
+
+            document.getElementById('result-correct-count').innerText = `${state.missionScore}/${total}`;
+            document.getElementById('result-xp-gained').innerText = `+${state.missionScore * 10} XP`;
+            document.getElementById('result-accuracy').innerText = `${accuracy}%`;
+
+            const evalText = document.getElementById('result-eval-text');
+            if (accuracy === 100) {
+                evalText.innerText = "Sempurna! Kamu menyelesaikan 15 soal dengan nilai sempurna! Kamu adalah Satria Pancasila Sejati!";
+            } else if (accuracy >= 70) {
+                evalText.innerText = "Hebat sekali! Pemahaman wawasan kebangsaanmu sudah sangat baik. Lanjutkan ke zona misi selanjutnya!";
+            } else {
+                evalText.innerText = "Usaha yang bagus! Kamu bisa mempelajari kembali ringkasan materi di 'Pustaka Garuda' lalu mencoba lagi misi ini.";
+            }
+
+            showScreen('result-screen');
+        }
+
+        function retryCurrentMission() {
+            if (state.currentMission) {
+                startMission(state.currentMission.id);
+            }
+        }
+
+        function confirmExitMission() {
+            if (confirm("Apakah kamu yakin ingin keluar dari misi ini? Kemajuan misi saat ini tidak akan disimpan.")) {
+                showScreen('map-screen');
+            }
+        }
+
+
+        /* ==========================================================================
+           8. LIBRARY & PUSTAKA GARUDA RENDERER (60 SOAL SD)
+           ========================================================================== */
+        function renderLibraryItems(filterCategory) {
+            const container = document.getElementById('library-items-container');
+            container.innerHTML = '';
+
+            const filtered = filterCategory === 'all' 
+                ? QUESTION_BANK 
+                : QUESTION_BANK.filter(q => q.category === filterCategory);
+
+            filtered.forEach((q, idx) => {
+                const itemHtml = `
+                    <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 transition hover:border-amber-500/40">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                ${q.categoryName}
+                            </span>
+                            <span class="text-xs text-slate-500">Soal #${idx + 1}</span>
+                        </div>
+                        
+                        <h4 class="text-sm font-bold text-white mb-3 leading-relaxed">${q.content}</h4>
+                        
+                        <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-800 text-xs text-emerald-300">
+                            <span class="font-bold text-emerald-400 block mb-1"><i class="fa-solid fa-circle-check"></i> Jawaban Benar: ${q.options[q.correctIndex]}</span>
+                            <span class="text-slate-300 leading-relaxed block">${q.explanation}</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += itemHtml;
+            });
+        }
+
+        function filterLibrary(category) {
+            document.querySelectorAll('.lib-tab').forEach(tab => {
+                tab.classList.remove('bg-amber-500', 'text-slate-950');
+                tab.classList.add('bg-slate-800', 'text-slate-300');
+            });
+
+            event.target.classList.remove('bg-slate-800', 'text-slate-300');
+            event.target.classList.add('bg-amber-500', 'text-slate-950');
+
+            renderLibraryItems(category);
+        }
+
+
+        /* ==========================================================================
+           9. AUDIO & UTILITY CONTROLS
+           ========================================================================== */
+        function toggleAudio() {
+            state.audioEnabled = !state.audioEnabled;
+            const btn = document.getElementById('audio-btn');
+            if (state.audioEnabled) {
+                btn.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+                btn.className = "p-2 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 flex items-center justify-center transition";
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-volume-xmark"></i>`;
+                btn.className = "p-2 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-500 border border-slate-700 flex items-center justify-center transition";
+            }
+        }
+
+        function resetGameProgress() {
+            if (confirm("Apakah Anda yakin ingin menghapus seluruh progres game dan memulai dari awal?")) {
+                localStorage.removeItem('satria_pancasila_sd_progress');
+                state.player = { name: "Satria", classGrade: "Kelas 5 SD/MI", xp: 0, lives: 3, rank: "Taruna Pancasila" };
+                state.completedMissions = {};
+                updateHUD();
+                showScreen('home-screen');
+            }
+        }
+
+        function exportCertificate() {
+            alert(`--- SERTIFIKAT PENGHARGAAN SATRIA PANCASILA ---\n\nNama Siswa: ${state.player.name}\nTingkat: ${state.player.classGrade}\nTotal Skor XP: ${state.player.xp}\nGelar Kehormatan: ${calculateRank(state.player.xp)}\n\nSelamat! Siswa telah menyelesaikan Misi Pembelajaran Interaktif Wawasan Kebangsaan Satria Pancasila!`);
+        }
+    </script>
+</body>
+</html>
