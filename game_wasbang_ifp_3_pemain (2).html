@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Edukasi Wawasan Kebangsaan - IFP 3 Pemain</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* Glassmorphism & Custom Shadow Tokens */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .touch-btn {
+            transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.12s ease, background-color 0.2s ease;
+        }
+        .touch-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Pulsing Timer Animation */
+        @keyframes timerPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); color: #ef4444; }
+            100% { transform: scale(1); }
+        }
+        .timer-warning {
+            animation: timerPulse 0.5s infinite;
+        }
+
+        /* Score Floating Animation */
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-35px); }
+        }
+        .score-float {
+            animation: floatUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Runner smooth motion on race track */
+        .runner-avatar {
+            transition: left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex flex-col justify-between select-none">
+
+    <!-- Top Header Bar -->
+    <header class="h-14 px-4 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between shrink-0 z-30">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-red-600 via-amber-500 to-emerald-500 flex items-center justify-center font-black text-lg shadow-lg shadow-red-500/20">
+                🇮🇩
+            </div>
+            <div>
+                <h1 class="font-extrabold text-xs md:text-sm text-white leading-tight flex items-center gap-2">
+                    WASBANG QUIZ <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-600 font-bold text-white uppercase tracking-wider">3 PEMAIN SERENTAK</span>
+                </h1>
+                <p class="text-[10px] text-amber-400 font-semibold">⚡ Semua Soal Diujikan ke Semua Pemain (Urutan Acak)</p>
+            </div>
+        </div>
+
+        <!-- Center Timer Display -->
+        <div id="timerContainer" class="flex items-center space-x-2 bg-slate-800/90 px-4 py-1.5 rounded-2xl border border-slate-700 shadow-inner">
+            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span id="timerText" class="font-black text-xl tracking-wider text-amber-400">15</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Detik</span>
+        </div>
+
+        <!-- Right Bar Controls -->
+        <div class="flex items-center space-x-2">
+            <div class="bg-slate-800 px-3 py-1 rounded-xl text-xs font-extrabold text-slate-200 border border-slate-700">
+                <span id="currentRoundNum" class="text-amber-400">Ronde 1</span> / <span id="totalRoundsNum">15</span>
+            </div>
+            <button id="soundToggleBtn" onclick="toggleSound()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                <svg id="soundOnIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"></path>
+                </svg>
+                <svg id="soundOffIcon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                </svg>
+            </button>
+            <button onclick="openSettingsModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Race Track Visualizer (Lintasan Lari 3 Pemain) -->
+    <section class="bg-slate-900/90 border-b border-slate-800 px-4 py-1.5 shrink-0">
+        <div class="max-w-6xl mx-auto space-y-1">
+            <!-- Player 1 Lane -->
+            <div class="relative h-6 bg-slate-950/80 rounded-full border border-red-500/30 overflow-hidden flex items-center px-3">
+                <span class="text-[10px] font-black text-red-400 z-10 uppercase tracking-wider flex items-center gap-1">
+                    <span id="trackP1Emoji">🔴</span> <span id="trackP1Name">Pemain 1</span>
+                </span>
+                <div id="p1TrackBar" class="absolute left-0 top-0 bottom-0 bg-red-600/30 rounded-full transition-all duration-500" style="width: 0%"></div>
+                <div id="p1Runner" class="runner-avatar absolute font-extrabold text-sm z-20" style="left: 2%">🏃‍♂️</div>
+                <div class="absolute right-3 font-bold text-[10px] text-slate-500 z-10">🏁 FINISH</div>
+            </div>
+
+            <!-- Player 2 Lane -->
+            <div class="relative h-6 bg-slate-950/80 rounded-full border border-blue-500/30 overflow-hidden flex items-center px-3">
+                <span class="text-[10px] font-black text-blue-400 z-10 uppercase tracking-wider flex items-center gap-1">
+                    <span id="trackP2Emoji">🔵</span> <span id="trackP2Name">Pemain 2</span>
+                </span>
+                <div id="p2TrackBar" class="absolute left-0 top-0 bottom-0 bg-blue-600/30 rounded-full transition-all duration-500" style="width: 0%"></div>
+                <div id="p2Runner" class="runner-avatar absolute font-extrabold text-sm z-20" style="left: 2%">🏃‍♀️</div>
+                <div class="absolute right-3 font-bold text-[10px] text-slate-500 z-10">🏁 FINISH</div>
+            </div>
+
+            <!-- Player 3 Lane -->
+            <div class="relative h-6 bg-slate-950/80 rounded-full border border-emerald-500/30 overflow-hidden flex items-center px-3">
+                <span class="text-[10px] font-black text-emerald-400 z-10 uppercase tracking-wider flex items-center gap-1">
+                    <span id="trackP3Emoji">🟢</span> <span id="trackP3Name">Pemain 3</span>
+                </span>
+                <div id="p3TrackBar" class="absolute left-0 top-0 bottom-0 bg-emerald-600/30 rounded-full transition-all duration-500" style="width: 0%"></div>
+                <div id="p3Runner" class="runner-avatar absolute font-extrabold text-sm z-20" style="left: 2%">🏃</div>
+                <div class="absolute right-3 font-bold text-[10px] text-slate-500 z-10">🏁 FINISH</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main 3 Column IFP Layout -->
+    <main class="flex-1 p-3 grid grid-cols-3 gap-3 overflow-hidden relative">
+
+        <!-- PLAYER 1 COLUMN (RED) -->
+        <div id="playerCard-0" class="glass-card rounded-2xl p-3 flex flex-col justify-between border-2 border-red-500/40 relative overflow-hidden bg-slate-900/90 h-full">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-2 border-b border-red-500/20 shrink-0">
+                <div class="flex items-center space-x-2">
+                    <div id="p1AvatarBox" class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center font-black text-white text-xs shadow-md">
+                        1
+                    </div>
+                    <div>
+                        <h3 id="p1Name" class="font-bold text-xs text-red-300 truncate max-w-[90px] md:max-w-[120px]">Pemain 1</h3>
+                        <span id="p1Status" class="text-[9px] uppercase font-bold tracking-wider text-slate-400">Memilih...</span>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="bg-red-950/60 border border-red-500/30 px-2.5 py-0.5 rounded-xl text-right">
+                        <span class="text-[9px] text-red-400 uppercase font-bold block leading-none">Skor</span>
+                        <span id="p1Score" class="font-extrabold text-base text-red-200">500</span>
+                    </div>
+                    <div id="p1ScoreFloat" class="hidden absolute -top-6 right-0 font-extrabold text-base score-float"></div>
+                </div>
+            </div>
+
+            <!-- Question Box for P1 -->
+            <div class="my-2 p-3 bg-slate-950/70 rounded-xl border border-red-500/20 flex-1 flex flex-col justify-start overflow-hidden min-h-0">
+                <div class="flex items-center justify-between mb-1.5 shrink-0">
+                    <span id="p1Category" class="text-[9px] font-bold text-red-400 uppercase tracking-wider block">Pancasila</span>
+                    <span id="p1ProgressTag" class="text-[9px] font-semibold text-slate-400">Soal 1/15</span>
+                </div>
+                <p id="p1QuestionText" class="text-xs md:text-sm font-semibold text-white leading-relaxed overflow-y-auto pr-1 my-auto flex-1 flex items-center">
+                    Memuat soal...
+                </p>
+            </div>
+
+            <!-- Options Grid for P1 -->
+            <div id="p1OptionsGrid" class="grid grid-cols-1 gap-1.5 shrink-0">
+                <!-- Injected dynamically -->
+            </div>
+
+            <!-- Lock / Result Overlay P1 -->
+            <div id="p1LockOverlay" class="hidden absolute inset-0 bg-red-950/95 backdrop-blur-sm flex flex-col items-center justify-center p-3 z-20 text-center">
+                <div id="p1LockIcon" class="w-9 h-9 rounded-full bg-red-600/30 border border-red-400 flex items-center justify-center mb-1 animate-bounce">
+                    <svg class="w-5 h-5 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <span id="p1OverlayTitle" class="font-bold text-red-200 text-xs">JAWABAN TERKUNCI</span>
+                <span id="p1SelectedBadge" class="text-[11px] text-red-300 font-medium mt-0.5">Menunggu pemain lain...</span>
+                <div id="p1Explanation" class="hidden mt-2 p-2 bg-slate-900/90 rounded-lg text-[10px] text-slate-300 border border-red-500/30 text-left overflow-y-auto max-h-[120px]"></div>
+            </div>
+        </div>
+
+        <!-- PLAYER 2 COLUMN (BLUE) -->
+        <div id="playerCard-1" class="glass-card rounded-2xl p-3 flex flex-col justify-between border-2 border-blue-500/40 relative overflow-hidden bg-slate-900/90 h-full">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-2 border-b border-blue-500/20 shrink-0">
+                <div class="flex items-center space-x-2">
+                    <div id="p2AvatarBox" class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-black text-white text-xs shadow-md">
+                        2
+                    </div>
+                    <div>
+                        <h3 id="p2Name" class="font-bold text-xs text-blue-300 truncate max-w-[90px] md:max-w-[120px]">Pemain 2</h3>
+                        <span id="p2Status" class="text-[9px] uppercase font-bold tracking-wider text-slate-400">Memilih...</span>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="bg-blue-950/60 border border-blue-500/30 px-2.5 py-0.5 rounded-xl text-right">
+                        <span class="text-[9px] text-blue-400 uppercase font-bold block leading-none">Skor</span>
+                        <span id="p2Score" class="font-extrabold text-base text-blue-200">500</span>
+                    </div>
+                    <div id="p2ScoreFloat" class="hidden absolute -top-6 right-0 font-extrabold text-base score-float"></div>
+                </div>
+            </div>
+
+            <!-- Question Box for P2 -->
+            <div class="my-2 p-3 bg-slate-950/70 rounded-xl border border-blue-500/20 flex-1 flex flex-col justify-start overflow-hidden min-h-0">
+                <div class="flex items-center justify-between mb-1.5 shrink-0">
+                    <span id="p2Category" class="text-[9px] font-bold text-blue-400 uppercase tracking-wider block">Sejarah</span>
+                    <span id="p2ProgressTag" class="text-[9px] font-semibold text-slate-400">Soal 1/15</span>
+                </div>
+                <p id="p2QuestionText" class="text-xs md:text-sm font-semibold text-white leading-relaxed overflow-y-auto pr-1 my-auto flex-1 flex items-center">
+                    Memuat soal...
+                </p>
+            </div>
+
+            <!-- Options Grid for P2 -->
+            <div id="p2OptionsGrid" class="grid grid-cols-1 gap-1.5 shrink-0">
+                <!-- Injected dynamically -->
+            </div>
+
+            <!-- Lock / Result Overlay P2 -->
+            <div id="p2LockOverlay" class="hidden absolute inset-0 bg-blue-950/95 backdrop-blur-sm flex flex-col items-center justify-center p-3 z-20 text-center">
+                <div id="p2LockIcon" class="w-9 h-9 rounded-full bg-blue-600/30 border border-blue-400 flex items-center justify-center mb-1 animate-bounce">
+                    <svg class="w-5 h-5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <span id="p2OverlayTitle" class="font-bold text-blue-200 text-xs">JAWABAN TERKUNCI</span>
+                <span id="p2SelectedBadge" class="text-[11px] text-blue-300 font-medium mt-0.5">Menunggu pemain lain...</span>
+                <div id="p2Explanation" class="hidden mt-2 p-2 bg-slate-900/90 rounded-lg text-[10px] text-slate-300 border border-blue-500/30 text-left overflow-y-auto max-h-[120px]"></div>
+            </div>
+        </div>
+
+        <!-- PLAYER 3 COLUMN (GREEN) -->
+        <div id="playerCard-2" class="glass-card rounded-2xl p-3 flex flex-col justify-between border-2 border-emerald-500/40 relative overflow-hidden bg-slate-900/90 h-full">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-2 border-b border-emerald-500/20 shrink-0">
+                <div class="flex items-center space-x-2">
+                    <div id="p3AvatarBox" class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center font-black text-white text-xs shadow-md">
+                        3
+                    </div>
+                    <div>
+                        <h3 id="p3Name" class="font-bold text-xs text-emerald-300 truncate max-w-[90px] md:max-w-[120px]">Pemain 3</h3>
+                        <span id="p3Status" class="text-[9px] uppercase font-bold tracking-wider text-slate-400">Memilih...</span>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-0.5 rounded-xl text-right">
+                        <span class="text-[9px] text-emerald-400 uppercase font-bold block leading-none">Skor</span>
+                        <span id="p3Score" class="font-extrabold text-base text-emerald-200">500</span>
+                    </div>
+                    <div id="p3ScoreFloat" class="hidden absolute -top-6 right-0 font-extrabold text-base score-float"></div>
+                </div>
+            </div>
+
+            <!-- Question Box for P3 -->
+            <div class="my-2 p-3 bg-slate-950/70 rounded-xl border border-emerald-500/20 flex-1 flex flex-col justify-start overflow-hidden min-h-0">
+                <div class="flex items-center justify-between mb-1.5 shrink-0">
+                    <span id="p3Category" class="text-[9px] font-bold text-emerald-400 uppercase tracking-wider block">Geografi</span>
+                    <span id="p3ProgressTag" class="text-[9px] font-semibold text-slate-400">Soal 1/15</span>
+                </div>
+                <p id="p3QuestionText" class="text-xs md:text-sm font-semibold text-white leading-relaxed overflow-y-auto pr-1 my-auto flex-1 flex items-center">
+                    Memuat soal...
+                </p>
+            </div>
+
+            <!-- Options Grid for P3 -->
+            <div id="p3OptionsGrid" class="grid grid-cols-1 gap-1.5 shrink-0">
+                <!-- Injected dynamically -->
+            </div>
+
+            <!-- Lock / Result Overlay P3 -->
+            <div id="p3LockOverlay" class="hidden absolute inset-0 bg-emerald-950/95 backdrop-blur-sm flex flex-col items-center justify-center p-3 z-20 text-center">
+                <div id="p3LockIcon" class="w-9 h-9 rounded-full bg-emerald-600/30 border border-emerald-400 flex items-center justify-center mb-1 animate-bounce">
+                    <svg class="w-5 h-5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <span id="p3OverlayTitle" class="font-bold text-emerald-200 text-xs">JAWABAN TERKUNCI</span>
+                <span id="p3SelectedBadge" class="text-[11px] text-emerald-300 font-medium mt-0.5">Menunggu pemain lain...</span>
+                <div id="p3Explanation" class="hidden mt-2 p-2 bg-slate-900/90 rounded-lg text-[10px] text-slate-300 border border-emerald-500/30 text-left overflow-y-auto max-h-[120px]"></div>
+            </div>
+        </div>
+
+        <!-- Global Floating Next Round Control Overlay -->
+        <div id="roundResultBanner" class="hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-40 bg-slate-900/95 backdrop-blur-xl px-6 py-2.5 rounded-2xl border border-amber-500/50 shadow-2xl flex items-center space-x-4 animate-bounce">
+            <span class="text-xs md:text-sm font-extrabold text-amber-300">⚡ EVALUASI RONDE SELESAI</span>
+            <button onclick="nextRound()" class="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs md:text-sm rounded-xl shadow-lg touch-btn flex items-center space-x-2">
+                <span>Lanjut Ronde Berikutnya</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-m0 0l-7 7m7-7H3"></path></svg>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- START / SETUP GAME MODAL -->
+    <div id="startModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center z-50 p-6 overflow-y-auto">
+        <div class="max-w-xl w-full glass-card p-6 md:p-8 rounded-3xl border border-slate-700 shadow-2xl text-center my-auto">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-500 via-amber-500 to-emerald-500 mx-auto flex items-center justify-center text-3xl shadow-lg mb-3">
+                🏆
+            </div>
+            <h2 class="text-2xl md:text-3xl font-black text-white">QUIZ WASBANG IFP</h2>
+            <p class="text-xs md:text-sm text-slate-400 mt-1">Lomba Cerdas Cermat Wawasan Kebangsaan 3 Pemain</p>
+
+            <div class="my-5 space-y-4 text-left">
+                <!-- Rules Box -->
+                <div class="bg-slate-900/90 p-3.5 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1.5">
+                    <div class="flex items-center space-x-2 text-amber-400 font-bold">
+                        <span>⚡ ATURAN PERMAINAN BARU:</span>
+                    </div>
+                    <ul class="list-disc list-inside space-y-1 text-slate-300 text-[11px]">
+                        <li><strong class="text-amber-300">Set Soal Sama & Urutan Acak:</strong> Semua 3 pemain akan menguji paket soal yang <strong>sama persis</strong>, namun dengan <strong>urutan nomor acak</strong> untuk tiap pemain.</li>
+                        <li>Modal Awal: <strong class="text-emerald-400">500 Poin</strong> | Benar: <strong class="text-emerald-400">+100 Poin</strong> | Salah/Waktu Habis: <strong class="text-red-400">-100 Poin</strong>.</li>
+                        <li>Waktu per soal: <strong class="text-amber-400">15 Detik</strong>. Lari ke garis finish dengan mengumpulkan poin terbanyak!</li>
+                    </ul>
+                </div>
+
+                <!-- Player Name Inputs -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-300">Nama Pemain / Tim:</label>
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-red-400 font-bold block">Pemain 1 (Merah)</span>
+                            <input id="inputP1Name" type="text" value="Pemain 1" class="w-full bg-slate-900 border border-red-500/40 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-red-500">
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-blue-400 font-bold block">Pemain 2 (Biru)</span>
+                            <input id="inputP2Name" type="text" value="Pemain 2" class="w-full bg-slate-900 border border-blue-500/40 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-emerald-400 font-bold block">Pemain 3 (Hijau)</span>
+                            <input id="inputP3Name" type="text" value="Pemain 3" class="w-full bg-slate-900 border border-emerald-500/40 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Select Question Count -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Jumlah Soal Diujikan:</label>
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <button onclick="setTotalGameQuestions(15, this)" class="q-count-btn active py-2 rounded-xl bg-red-600 border border-red-500 text-xs font-bold text-white">15 Soal</button>
+                        <button onclick="setTotalGameQuestions(30, this)" class="q-count-btn py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 hover:bg-slate-700">30 Soal</button>
+                        <button onclick="setTotalGameQuestions(54, this)" class="q-count-btn py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 hover:bg-slate-700">54 Soal (Maksimal)</button>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="w-full py-3.5 bg-gradient-to-r from-red-600 via-amber-500 to-emerald-600 hover:opacity-95 text-white font-black text-base rounded-2xl shadow-xl shadow-red-500/20 touch-btn">
+                MULAI PERMAINAN SEKARANG 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-6">
+        <div class="max-w-md w-full glass-card p-6 rounded-3xl border border-slate-700 shadow-2xl space-y-4">
+            <h3 class="text-lg font-extrabold text-white">Pengaturan Permainan</h3>
+            <div class="space-y-2.5">
+                <button onclick="resetCurrentGame()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs touch-btn">
+                    🔄 Ulangi Sesi Game Ini
+                </button>
+                <button onclick="returnToStartMenu()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs touch-btn">
+                    🏠 Kembali ke Menu Utama
+                </button>
+            </div>
+            <button onclick="closeSettingsModal()" class="w-full py-2 bg-slate-900 text-slate-400 hover:text-white font-semibold rounded-xl text-xs">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- WINNER / END GAME MODAL -->
+    <div id="winnerModal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center z-50 p-6 overflow-y-auto">
+        <div class="max-w-2xl w-full glass-card p-6 md:p-8 rounded-3xl border border-slate-700 shadow-2xl text-center my-auto">
+            <div class="text-4xl mb-2 animate-bounce">🎉</div>
+            <h2 class="text-2xl md:text-3xl font-black text-white">PERMAINAN SELESAI!</h2>
+            <p class="text-xs text-slate-400 mt-1">Hasil Akhir Pertandingan Wawasan Kebangsaan</p>
+
+            <!-- PODIUM VISUALIZATION -->
+            <div id="podiumContainer" class="grid grid-cols-3 gap-3 items-end my-6 min-h-[180px]">
+                <!-- Injected dynamically based on sorted final scores -->
+            </div>
+
+            <!-- DETAIL STATS BREAKDOWN -->
+            <div id="playerStatsBreakdown" class="space-y-2 text-left mb-6 bg-slate-900/90 p-4 rounded-2xl border border-slate-800">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Statistik Akhir Pemain:</h4>
+                <div id="statsContent" class="space-y-2 text-xs">
+                    <!-- Dynamic stats -->
+                </div>
+            </div>
+
+            <div class="flex space-x-3">
+                <button onclick="returnToStartMenu()" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-2xl text-xs touch-btn">
+                    🏠 Menu Utama
+                </button>
+                <button onclick="startGame()" class="flex-1 py-3 bg-gradient-to-r from-red-600 via-amber-500 to-emerald-600 text-white font-extrabold rounded-2xl text-xs touch-btn shadow-lg">
+                    🔄 Main Lagi (Acak Ulang)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // MASTER BANK SOAL WASBANG (55 BUTIR SOAL)
+        // ==========================================
+        const questionBank = [
+            // Kategori 1 : Pancasila
+            {
+                id: 1,
+                category: "Kategori 1 : Pancasila",
+                question: "Pancasila menjadi pedoman dan petunjuk arah dalam merawat keberagaman suku dan budaya di Indonesia. Berdasarkan fungsi tersebut, Pancasila berkedudukan sebagai ....",
+                type: "mcq",
+                options: ["Pandangan hidup bangsa", "Dasar negara formal", "Perjanjian luhur", "Kepribadian bangsa"],
+                correct: 0,
+                explanation: "Sebagai pandangan hidup bangsa, Pancasila berfungsi sebagai petunjuk dan pedoman kehidupan sehari-hari masyarakat Indonesia."
+            },
+            {
+                id: 2,
+                category: "Kategori 1 : Pancasila",
+                question: "Pada sidang BPUPKI yang pertama, Ir. Soekarno menyampaikan gagasan lima dasar negara pada tanggal 1 Juni 1945. Diperingati sebagai hari apakah tanggal 1 Juni tersebut?",
+                type: "mcq",
+                options: ["Hari Lahir Pancasila", "Hari Kesaktian Pancasila", "Hari Sumpah Pemuda", "Hari Kemerdekaan RI"],
+                correct: 0,
+                explanation: "Tanggal 1 Juni memperingati Pidato Ir. Soekarno tentang dasar negara yang dinamakan Pancasila."
+            },
+            {
+                id: 3,
+                category: "Kategori 1 : Pancasila",
+                question: "Kegiatan warga bergotong-royong membersihkan lingkungan kampung merupakan perwujudan nilai-nilai Pancasila yang memperkuat persatuan. Kegiatan gotong-royong tersebut merupakan contoh pengamalan Pancasila sila ke ....",
+                type: "mcq",
+                options: ["Sila ke-1", "Sila ke-2", "Sila ke-3", "Sila ke-4"],
+                correct: 2,
+                explanation: "Gotong royong dan menjaga kerukunan warga merupakan nilai Persatuan Indonesia (Sila ke-3)."
+            },
+            {
+                id: 4,
+                category: "Kategori 1 : Pancasila",
+                question: "Pada perisai Garuda Pancasila terdapat garis hitam tebal yang melintang horizontal di bagian tengah. Garis hitam tebal tersebut melambangkan wilayah Indonesia yang dilintasi oleh ....",
+                type: "mcq",
+                options: ["Garis khatulistiwa (ekuator)", "Garis bujur utama", "Batas wilayah laut", "Garis Wallace"],
+                correct: 0,
+                explanation: "Garis hitam tebal melambangkan posisi geografis Indonesia yang dilintasi garis khatulistiwa."
+            },
+            {
+                id: 5,
+                category: "Kategori 1 : Pancasila",
+                question: "Nilai-nilai Pancasila yang terkandung dalam Pembukaan UUD 1945 merupakan pokok kaidah negara yang fundamental dan tidak dapat diubah oleh siapapun. Benar atau salah, hal tersebut merupakan makna Pancasila secara objektif?",
+                type: "tf",
+                options: ["Benar", "Salah"],
+                correct: 0,
+                explanation: "Pernyataan BENAR. Kedudukan Pancasila dalam Pembukaan UUD 1945 bersifat tetap, fundamental, dan tidak dapat diubah."
+            },
+
+            // Kategori 2 : Sejarah dan Pergerakan Nasional
+            {
+                id: 6,
+                category: "Kategori 2 : Sejarah Pergerakan",
+                question: "Sumpah Pemuda dibacakan pada Kongres Pemuda II tanggal 28 Oktober 1928 di Jakarta. Tokoh yang pertama kali memperdengarkan lagu Indonesia Raya melalui gesekan biola pada peristiwa tersebut adalah ....",
+                type: "mcq",
+                options: ["Wage Rudolf Supratman", "Ismail Marzuki", "Cornel Simanjuntak", "Kusbini"],
+                correct: 0,
+                explanation: "W.R. Supratman memperdengarkan instrumental lagu Indonesia Raya dengan biola pada Kongres Pemuda II."
+            },
+            {
+                id: 7,
+                category: "Kategori 2 : Sejarah Pergerakan",
+                question: "Pangeran Diponegoro memimpin perlawanan sengit melawan Belanda dalam Perang Jawa (1825–1830). Taktik perang yang digunakan Pangeran Diponegoro untuk menyulitkan pasukan Belanda adalah ....",
+                type: "mcq",
+                options: ["Taktik perang gerilya", "Taktik benteng stelsel", "Taktik bumi hangus", "Taktik perang terbuka"],
+                correct: 0,
+                explanation: "Pangeran Diponegoro menggunakan taktik perang gerilya dengan berpindah-pindah tempat."
+            },
+            {
+                id: 8,
+                category: "Kategori 2 : Sejarah Pergerakan",
+                question: "Tokoh pahlawan nasional dari Maluku yang memimpin perlawanan rakyat Maluku melawan penjajahan Belanda pada tahun 1817 adalah ....",
+                type: "mcq",
+                options: ["Kapitan Pattimura (Thomas Matulessy)", "Sisingamangaraja XII", "Pangeran Antasari", "Sultan Hasanuddin"],
+                correct: 0,
+                explanation: "Thomas Matulessy atau Kapitan Pattimura memimpin perlawanan rakyat Maluku merebut Benteng Duurstede."
+            },
+            {
+                id: 9,
+                category: "Kategori 2 : Sejarah Pergerakan",
+                question: "Kerajaan Majapahit mencapai puncak kejayaannya pada masa pemerintahan Raja Hayam Wuruk dengan bantuan Mahapatih Gajah Mada. Sumpah yang terkenal diucapkan oleh Gajah Mada tersebut adalah ....",
+                type: "mcq",
+                options: ["Sumpah Palapa", "Sumpah Pemuda", "Sumpah Amukti", "Sumpah Prajurit"],
+                correct: 0,
+                explanation: "Sumpah Palapa bersumpah tidak akan menikmati kenikmatan duniawi sebelum mempersatukan Nusantara."
+            },
+            {
+                id: 10,
+                category: "Kategori 2 : Sejarah Pergerakan",
+                question: "Politik etis yang diterapkan oleh Pemerintah Kolonial Belanda mencakup tiga program utama, yaitu irigasi, edukasi, dan migrasi. Benar atau salah, program edukasi dalam politik etis bertujuan murni untuk mencerdaskan seluruh rakyat Indonesia?",
+                type: "tf",
+                options: ["Benar", "Salah"],
+                correct: 1,
+                explanation: "Pernyataan SALAH. Program edukasi politik etis Belanda utamanya bertujuan menyediakan tenaga kerja murah terdidik untuk pegawai kolonial."
+            },
+
+            // Kategori 3 : Proklamasi dan Upaya Mempertahankan Kemerdekaan
+            {
+                id: 11,
+                category: "Kategori 3 : Proklamasi & Kemerdekaan",
+                question: "Tokoh pemuda Sutan Syahrir mendengar berita kekalahan Jepang atas sekutu melalui siaran radio luar negeri. Tindakan yang langsung dilakukan oleh para pemuda setelah mendengar berita tersebut adalah ....",
+                type: "mcq",
+                options: ["Mendesak Soekarno-Hatta segera memproklamasikan kemerdekaan", "Membentuk pasukan tentara baru", "Menunggu instruksi Sekutu", "Melaporkan ke pihak pemerintah Jepang"],
+                correct: 0,
+                explanation: "Pemuda mendesak Soekarno dan Hatta untuk segera memproklamasikan kemerdekaan tanpa pengaruh Jepang."
+            },
+            {
+                id: 12,
+                category: "Kategori 3 : Proklamasi & Kemerdekaan",
+                question: "Pertempuran Ambarawa yang dipimpin oleh Kolonel Sudirman berhasil memukul mundur pasukan Sekutu pada tanggal 15 Desember 1945. Kemenangan tersebut diperingati sebagai ....",
+                type: "mcq",
+                options: ["Hari Juang Kartika TNI AD / Infanteri", "Hari Pahlawan", "Hari Bhayangkara", "Hari TNI"],
+                correct: 0,
+                explanation: "Kemenangan Pertempuran Ambarawa diperingati setiap 15 Desember sebagai Hari Juang Kartika (Hari Infanteri)."
+            },
+            {
+                id: 13,
+                category: "Kategori 3 : Proklamasi & Kemerdekaan",
+                question: "Tokoh perempuan yang berjuang bersama suaminya, Sayuti Melik, dan dipercaya membawa baki bendera Sang Saka Merah Putih saat proklamasi dikumandangkan adalah ....",
+                type: "mcq",
+                options: ["Surastri Karma Trimurti (S. K. Trimurti)", "Fatmawati", "Rasuna Said", "Cut Nyak Dhien"],
+                correct: 0,
+                explanation: "S. K. Trimurti adalah wartawan dan pejuang kemerdekaan yang bertugas dalam pembawa baki bendera proklamasi."
+            },
+            {
+                id: 14,
+                category: "Kategori 3 : Proklamasi & Kemerdekaan",
+                question: "Perundingan Linggarjati dilaksanakan pada bulan November 1946 dipimpin Sutan Syahrir. Salah satu hasil perundingan yaitu pengakuan secara de facto wilayah Indonesia oleh Belanda yang terdiri atas ....",
+                type: "mcq",
+                options: ["Jawa, Sumatera, dan Madura", "Jawa, Bali, dan Sulawesi", "Seluruh Wilayah Hindia Belanda", "Jawa dan Kalimantan"],
+                correct: 0,
+                explanation: "Hasil Perundingan Linggarjati mengakui de facto wilayah RI meliputi Jawa, Sumatera, dan Madura."
+            },
+            {
+                id: 15,
+                category: "Kategori 3 : Proklamasi & Kemerdekaan",
+                question: "Peristiwa Rengasdengklok terjadi pada tanggal 16 Agustus 1945 dini hari. Benar atau salah, tujuan utama pemuda membawa Soekarno dan Hatta ke Rengasdengklok adalah untuk merumuskan teks proklamasi kemerdekaan?",
+                type: "tf",
+                options: ["Benar", "Salah"],
+                correct: 1,
+                explanation: "Pernyataan SALAH. Tujuan utama penculikan ke Rengasdengklok adalah menjauhkan Soekarno-Hatta dari pengaruh dan tekanan pihak Jepang."
+            },
+
+            // Kategori 4 : UUD 1945 dan Ketatanegaraan
+            {
+                id: 16,
+                category: "Kategori 4 : UUD 1945 & Ketatanegaraan",
+                question: "Pembukaan UUD 1945 memuat cita-cita luhur serta tujuan nasional bangsa Indonesia. Tujuan negara Indonesia tercantum dalam Pembukaan UUD 1945 alinea ke ....",
+                type: "mcq",
+                options: ["Alinea ke-4", "Alinea ke-1", "Alinea ke-2", "Alinea ke-3"],
+                correct: 0,
+                explanation: "Tujuan negara (melindungi segenap bangsa, memajukan kesejahteraan umum, dll) tercantum pada Alinea ke-4 Pembukaan UUD 1945."
+            },
+            {
+                id: 17,
+                category: "Kategori 4 : UUD 1945 & Ketatanegaraan",
+                question: "Negara menjamin setiap warga negara untuk mendapatkan pekerjaan serta kehidupan yang bermartabat. Pasal dalam UUD 1945 yang mengatur bahwa tiap warga negara berhak atas pekerjaan dan penghidupan yang layak adalah ....",
+                type: "mcq",
+                options: ["Pasal 27 Ayat 2", "Pasal 28A", "Pasal 30 Ayat 1", "Pasal 31 Ayat 1"],
+                correct: 0,
+                explanation: "Pasal 27 Ayat 2 menegaskan hak atas pekerjaan dan penghidupan yang layak bagi kemanusiaan."
+            },
+            {
+                id: 18,
+                category: "Kategori 4 : UUD 1945 & Ketatanegaraan",
+                question: "Lembaga negara DPR (Dewan Perwakilan Rakyat) yang bertugas di Gedung MPR/DPR RI memiliki fungsi utama untuk ....",
+                type: "mcq",
+                options: ["Membentuk undang-undang dan mengawasi pemerintah", "Menjalankan roda pemerintahan harian", "Mengadili pelanggaran hukum", "Mengelola keuangan daerah"],
+                correct: 0,
+                explanation: "Fungsi DPR mencakup fungsi legislasi (membentuk UU), anggaran, dan pengawasan terhadap pelaksanaan pemerintahan."
+            },
+            {
+                id: 19,
+                category: "Kategori 4 : UUD 1945 & Ketatanegaraan",
+                question: "Dalam sistem ketatanegaraan Indonesia, lembaga yudikatif yang berwenang menguji peraturan perundang-undangan di bawah undang-undang terhadap undang-undang adalah ....",
+                type: "mcq",
+                options: ["Mahkamah Agung", "Mahkamah Konstitusi", "Komisi Yudisial", "Badan Pemeriksa Keuangan"],
+                correct: 0,
+                explanation: "MA berwenang menguji peraturan di bawah UU terhadap UU. Sedangkan MK menguji UU terhadap UUD 1945."
+            },
+            {
+                id: 20,
+                category: "Kategori 4 : UUD 1945 & Ketatanegaraan",
+                question: "Dewan Perwakilan Daerah (DPD) dipilih dari tiap provinsi. Benar atau salah, jumlah anggota DPD dari setiap provinsi ditetapkan sama dan jumlah keseluruhannya tidak melebihi sepertiga jumlah anggota DPR?",
+                type: "tf",
+                options: ["Benar", "Salah"],
+                correct: 0,
+                explanation: "Pernyataan BENAR. Sesuai Pasal 22C UUD 1945, anggota DPD tiap provinsi jumlahnya sama dan totalnya tidak melebihi 1/3 anggota DPR."
+            },
+
+            // Kategori 5 : Keanekaragaman Budaya dan Geografi Nusantara
+            {
+                id: 21,
+                category: "Kategori 5 : Keanekaragaman Budaya & Geografi",
+                question: "Indonesia berada di antara dua benua besar dan dua samudera. Samudra yang mengapit wilayah Indonesia di bagian Barat dan Selatan adalah ....",
+                type: "mcq",
+                options: ["Samudera Hindia", "Samudera Pasifik", "Samudera Atlantik", "Samudera Arktik"],
+                correct: 0,
+                explanation: "Wilayah Indonesia diapit oleh Samudera Hindia (Barat-Selatan) dan Samudera Pasifik (Timur-Utara)."
+            },
+            {
+                id: 22,
+                category: "Kategori 5 : Keanekaragaman Budaya & Geografi",
+                question: "Tarian tradisional dari Sumatera Utara yang dilakukan pada ritual adat seperti pernikahan dan penyembuhan serta diiringi alat musik mangondangi adalah ....",
+                type: "mcq",
+                options: ["Tari Tor-Tor", "Tari Saman", "Tari Piring", "Tari Jaipong"],
+                correct: 0,
+                explanation: "Tari Tor-Tor adalah tarian perayaan dan ritual suku Batak dari Sumatera Utara."
+            },
+            {
+                id: 23,
+                category: "Kategori 5 : Keanekaragaman Budaya & Geografi",
+                question: "Rumah adat dari Sulawesi Selatan yang memiliki atap melengkung menyerupai perahu dan dihiasi tanduk kerbau di bagian depannya dinamakan ....",
+                type: "mcq",
+                options: ["Rumah Tongkonan", "Rumah Gadang", "Rumah Joglo", "Rumah Honai"],
+                correct: 0,
+                explanation: "Rumah Tongkonan merupakan rumah adat Suku Toraja di Sulawesi Selatan."
+            },
+            {
+                id: 24,
+                category: "Kategori 5 : Keanekaragaman Budaya & Geografi",
+                question: "Budi berangkat dari kota Padang (WIB) menuju ke Balikpapan (WITA) pada pukul 09.00 WIB dengan lama penerbangan 3 jam. Budi tiba di Balikpapan menurut zona waktu lokal pada pukul ....",
+                type: "mcq",
+                options: ["13.00 WITA", "12.00 WITA", "14.00 WITA", "11.00 WITA"],
+                correct: 0,
+                explanation: "09.00 WIB + 3 jam terbang = 12.00 WIB. Karena WITA lebih cepat 1 jam dari WIB, maka waktu di Balikpapan adalah 13.00 WITA."
+            },
+            {
+                id: 25,
+                category: "Kategori 5 : Keanekaragaman Budaya & Geografi",
+                question: "Indonesia terbagi menjadi tiga zona waktu. Benar atau salah, Provinsi Nusa Tenggara Timur (WITA) dan Provinsi Maluku (WIT) berada dalam satu zona waktu yang sama?",
+                type: "tf",
+                options: ["Benar", "Salah"],
+                correct: 1,
+                explanation: "Pernyataan SALAH. NTT berada pada Waktu Indonesia Tengah (WITA), sedangkan Maluku berada pada Waktu Indonesia Timur (WIT)."
+            },
+
+            // Kategori 6 : Kekayaan Alam, Wawasan Bojonegoro, dan Isu Lingkungan
+            {
+                id: 26,
+                category: "Kategori 6 : Kekayaan Alam & Bojonegoro",
+                question: "Burung endemik asal Papua yang terkenal memiliki warna bulu sangat indah sehingga dijuluki sebagai 'Bird of Paradise' adalah ....",
+                type: "mcq",
+                options: ["Burung Cenderawasih", "Burung Jalak Bali", "Burung Kasuari", "Burung Merak"],
+                correct: 0,
+                explanation: "Burung Cenderawasih merupakan kebanggaan Papua yang dijuluki Bird of Paradise."
+            },
+            {
+                id: 27,
+                category: "Kategori 6 : Kekayaan Alam & Bojonegoro",
+                question: "Bojonegoro memiliki potensi ekonomi besar di sektor energi. Nama lapangan minyak bumi utama yang terletak di Kecamatan Gayam, Kabupaten Bojonegoro tersebut adalah ....",
+                type: "mcq",
+                options: ["Lapangan Banyu Urip / Blok Cepu", "Lapangan Arun", "Lapangan Duri", "Lapangan Mahakam"],
+                correct: 0,
+                explanation: "Lapangan Banyu Urip di Blok Cepu, Kecamatan Gayam, Bojonegoro adalah penghasil minyak terbesar di Indonesia."
+            },
+            {
+                id: 28,
+                category: "Kategori 6 : Kekayaan Alam & Bojonegoro",
+                question: "Bunga Rafflesia Arnoldii ditetapkan dalam Keppres No. 4 Tahun 1993 sebagai salah satu bunga nasional Indonesia dengan julukan ....",
+                type: "mcq",
+                options: ["Puspa Langka", "Puspa Bangsa", "Puspa Pesona", "Puspa Nusantara"],
+                correct: 0,
+                explanation: "Rafflesia Arnoldii berjuluk Puspa Langka, Melati Putih sebagai Puspa Bangsa, dan Anggrek Bulan sebagai Puspa Pesona."
+            },
+            {
+                id: 29,
+                category: "Kategori 6 : Kekayaan Alam & Bojonegoro",
+                question: "Nama Bojonegoro berasal dari dua kata Jawa: 'Bojono' dan 'Negoro'. Arti dari kata 'Negoro' dalam asal-usul nama Bojonegoro adalah ....",
+                type: "mcq",
+                options: ["Negara, Kota, atau Wilayah", "Makan bersama", "Lautan luas", "Hutan rimba"],
+                correct: 0,
+                explanation: "Kata 'Negoro' berarti Negara, Kota, atau Wilayah tempat bermukim."
+            },
+            {
+                id: 30,
+                category: "Kategori 6 : Kekayaan Alam & Bojonegoro",
+                question: "Penebangan hutan liar memicu deforestasi. Benar atau salah, deforestasi dapat meningkatkan kapasitas hutan dalam menyerap karbon sehingga mencegah banjir?",
+                type: "tf",
+                options: ["Benar", "Salah"],
+                correct: 1,
+                explanation: "Pernyataan SALAH. Deforestasi (pengrusakan hutan) justru menurunkan kemampuan meresap air dan karbon, sehingga memicu banjir dan pemanasan global."
+            },
+
+            // Kategori 7 : Bela Negara, TNI/Polri, dan Pengetahuan Umum
+            {
+                id: 31,
+                category: "Kategori 7 : Bela Negara & TNI/Polri",
+                question: "Tentara Nasional Indonesia (TNI) dibentuk untuk menjaga kedaulatan NKRI. Setiap tanggal berapakah bangsa Indonesia memperingati Hari Ulang Tahun (HUT) TNI?",
+                type: "mcq",
+                options: ["5 Oktober", "10 November", "17 Agustus", "1 Juni"],
+                correct: 0,
+                explanation: "HUT TNI diperingati setiap tanggal 5 Oktober menandai pembentukan TKR pada tahun 1945."
+            },
+            {
+                id: 32,
+                category: "Kategori 7 : Bela Negara & TNI/Polri",
+                question: "Semboyan kebanggaan TNI Angkatan Darat adalah 'Kartika Eka Paksi'. Bahasa apakah yang digunakan dalam semboyan tersebut?",
+                type: "mcq",
+                options: ["Bahasa Sanskerta", "Bahasa Kawi", "Bahasa Melayu", "Bahasa Belanda"],
+                correct: 0,
+                explanation: "'Kartika Eka Paksi' berasal dari bahasa Sanskerta yang berarti Burung Gagah Perkasa Tanpa Tanding Menjunjung Cita-cita Tinggi."
+            },
+            {
+                id: 33,
+                category: "Kategori 7 : Bela Negara & TNI/Polri",
+                question: "Organisasi kerja sama regional ASEAN dibentuk melalui Deklarasi Bangkok 1967. Pada tanggal berapa tepatnya ASEAN resmi didirikan?",
+                type: "mcq",
+                options: ["8 Agustus 1967", "17 Agustus 1945", "28 Oktober 1928", "1 Juni 1945"],
+                correct: 0,
+                explanation: "ASEAN didirikan pada tanggal 8 Agustus 1967 di Bangkok oleh 5 negara pendiri."
+            },
+            {
+                id: 34,
+                category: "Kategori 7 : Bela Negara & TNI/Polri",
+                question: "Dalam Sishamkamrata, unit instansi kepolisian yang bertugas menjalankan fungsi pelayanan dan keamanan di wilayah tingkat kecamatan dinamakan ....",
+                type: "mcq",
+                options: ["Kepolisian Sektor (Polsek)", "Kepolisian Resor (Polres)", "Polda", "Mabes Polri"],
+                correct: 0,
+                explanation: "Polsek (Kepolisian Sektor) bertanggung jawab atas keamanan dan pelayanan di tingkat kecamatan."
+            },
+            {
+                id: 35,
+                category: "Kategori 7 : Bela Negara & TNI/Polri",
+                question: "Benar atau salah, ketentuan mengenai keikutsertaan warga negara dalam upaya pembelaan negara diatur rinci dalam UUD 1945 Pasal 27 ayat 3 dan Pasal 30 ayat 1?",
+                type: "tf",
+                options: ["Benar", "Salah"],
+                correct: 0,
+                explanation: "Pernyataan BENAR. Hak dan kewajiban bela negara diatur dalam Pasal 27 ayat 3 serta pertahanan negara pada Pasal 30 ayat 1."
+            },
+
+            // Latihan Soal Acak (Soal 36-55)
+            {
+                id: 36,
+                category: "Latihan Soal Wasbang",
+                question: "Konferensi internasional di Den Haag (23 Ags - 2 Nov 1949) yang secara resmi mengakui kedaulatan Indonesia adalah ....",
+                type: "mcq",
+                options: ["Konferensi Meja Bundar (KMB)", "Perundingan Roem-Royen", "Perundingan Renville", "Konferensi Asia Afrika"],
+                correct: 0,
+                explanation: "KMB menghasilkan pengakuan kedaulatan Indonesia oleh pihak Kerajaan Belanda."
+            },
+            {
+                id: 37,
+                category: "Latihan Soal Wasbang",
+                question: "Bangga menggunakan pakaian batik dan produk dalam negeri merupakan pengamalan Pancasila Sila ke-3. Sila ke-3 Pancasila dilambangkan dengan ....",
+                type: "mcq",
+                options: ["Pohon Beringin", "Banteng", "Rantai Emas", "Padi dan Kapas"],
+                correct: 0,
+                explanation: "Pohon Beringin melambangkan tempat berteduh dan persatuan seluruh bangsa Indonesia."
+            },
+            {
+                id: 38,
+                category: "Latihan Soal Wasbang",
+                question: "Siapakah tokoh Menteri Luar Negeri yang mewakili Indonesia dalam penandatanganan Deklarasi Bangkok pembentukan ASEAN tahun 1967?",
+                type: "mcq",
+                options: ["Adam Malik", "Sutan Syahrir", "Ali Sastroamidjojo", "Mohammad Hatta"],
+                correct: 0,
+                explanation: "Adam Malik merupakan Menteri Luar Negeri RI yang menandatangani Deklarasi Bangkok."
+            },
+            {
+                id: 39,
+                category: "Latihan Soal Wasbang",
+                question: "Perang saudara di Kerajaan Majapahit antara Bhre Wirabhumi dan Wikramawardhana yang mengakibatkan kemunduran kerajaan dinamakan ....",
+                type: "mcq",
+                options: ["Perang Paregreg", "Perang Bubat", "Perang Ganter", "Perang Diponegoro"],
+                correct: 0,
+                explanation: "Perang Paregreg adalah perang perebutan takhta Majapahit yang melemahkan kerajaan."
+            },
+            {
+                id: 40,
+                category: "Latihan Soal Wasbang",
+                question: "Warga negara wajib mengikuti pendidikan dasar yang dibiayai penuh oleh pemerintah. Ketentuan ini diatur dalam UUD 1945 pasal ....",
+                type: "mcq",
+                options: ["Pasal 31 Ayat 2", "Pasal 28", "Pasal 33 Ayat 1", "Pasal 30 Ayat 2"],
+                correct: 0,
+                explanation: "Pasal 31 Ayat 2 mewajibkan setiap warga negara mengikuti pendidikan dasar dan pemerintah wajib membiayainya."
+            },
+            {
+                id: 41,
+                category: "Latihan Soal Wasbang",
+                question: "Burung langka endemik asal Sulawesi Tengah yang hidup di Taman Nasional Lore Lindu dan hanya bertelur sebutir dalam setiap musimnya adalah ....",
+                type: "mcq",
+                options: ["Burung Maleo", "Burung Jalak Bali", "Burung Rangkong", "Burung Cenderawasih"],
+                correct: 0,
+                explanation: "Burung Maleo merupakan satwa endemik Sulawesi yang terkenal bertelur sebutir berukuran besar di pasir panas."
+            },
+            {
+                id: 42,
+                category: "Latihan Soal Wasbang",
+                question: "Upacara adat tradisional Suku Tengger di kawasan Gunung Bromo yang melempar sesaji ke kawah saat bulan purnama adalah ....",
+                type: "mcq",
+                options: ["Upacara Yadnya Kasada", "Upacara Ngaben", "Upacara Sekaten", "Upacara Seren Taun"],
+                correct: 0,
+                explanation: "Yadnya Kasada merupakan ritual Suku Tengger mengucap syukur kepada Sang Hyang Widhi."
+            },
+            {
+                id: 43,
+                category: "Latihan Soal Wasbang",
+                question: "Pejabat militer yang memimpin unit Koramil (Komando Rayon Militer) di tingkat kecamatan dinamakan ....",
+                type: "mcq",
+                options: ["Danramil", "Dandim", "Danrem", "Pangdam"],
+                correct: 0,
+                explanation: "Danramil (Komandan Rayon Militer) adalah pimpinan satuan TNI tingkat kecamatan."
+            },
+            {
+                id: 44,
+                category: "Latihan Soal Wasbang",
+                question: "Siapakah komponis Indonesia yang menciptakan lagu perang perjuangan 'Halo-Halo Bandung' untuk mengenang peristiwa Bandung Lautan Api?",
+                type: "mcq",
+                options: ["Ismail Marzuki", "Gombloh", "W.R. Supratman", "Cornel Simanjuntak"],
+                correct: 0,
+                explanation: "Ismail Marzuki menciptakan Halo-Halo Bandung untuk membakar semangat perjuangan para pemuda."
+            },
+            {
+                id: 45,
+                category: "Latihan Soal Wasbang",
+                question: "Jumlah helai bulu pada lambang Garuda Pancasila melambangkan tanggal proklamasi kemerdekaan. Jumlah helai bulu pada leher Garuda menunjukkan angka ....",
+                type: "mcq",
+                options: ["45", "17", "8", "19"],
+                correct: 0,
+                explanation: "Bulu leher berjumlah 45 (tahun 1945), bulu sayap 17 (tanggal 17), bulu ekor 8 (bulan Agustus)."
+            },
+            {
+                id: 46,
+                category: "Latihan Soal Wasbang",
+                question: "Tokoh perempuan yang memperjuangkan kesetaraan gender melalui surat-suratnya yang diterbitkan dalam buku 'Habis Gelap Terbitlah Terang' adalah ....",
+                type: "mcq",
+                options: ["R.A. Kartini", "Dewi Sartika", "Cut Nyak Dhien", "Martha Christina Tiahahu"],
+                correct: 0,
+                explanation: "Raden Ajeng Kartini adalah pahlawan emansipasi wanita Indonesia."
+            },
+            {
+                id: 47,
+                category: "Latihan Soal Wasbang",
+                question: "Indonesia menetapkan asas kewarganegaraan berdasarkan keturunan atau hubungan darah orang tua. Asas kewarganegaraan ini dinamakan ....",
+                type: "mcq",
+                options: ["Ius Sanguinis", "Ius Soli", "Apatride", "Bipatride"],
+                correct: 0,
+                explanation: "Ius Sanguinis menentukan kewarganegaraan berdasarkan pertalian darah orang tua."
+            },
+            {
+                id: 48,
+                category: "Latihan Soal Wasbang",
+                question: "Lembaga negara mandiri yang bertugas melakukan pemeriksaan atas pengelolaan dan tanggung jawab keuangan negara adalah ....",
+                type: "mcq",
+                options: ["Badan Pemeriksa Keuangan (BPK)", "Komisi Pemberantasan Korupsi (KPK)", "Bank Indonesia (BI)", "Otoritas Jasa Keuangan (OJK)"],
+                correct: 0,
+                explanation: "BPK merupakan lembaga bebas dan mandiri pemeriksa keuangan negara."
+            },
+            {
+                id: 49,
+                category: "Latihan Soal Wasbang",
+                question: "Nama Kabupaten Bojonegoro terbentuk dari kata Bojono dan Negoro. Apakah arti kata 'Bojono' dalam nama Bojonegoro?",
+                type: "mcq",
+                options: ["Makan Bersama / Bersenang-senang", "Negara atau Kota", "Sungai nan Jernih", "Gunung yang Tinggi"],
+                correct: 0,
+                explanation: "Kata 'Bojono' mengandung arti jamuan makan bersama, syukuran, atau bersenang-senang."
+            },
+            {
+                id: 50,
+                category: "Latihan Soal Wasbang",
+                question: "Peristiwa perobekan warna biru bendera Belanda di Hotel Yamato memicu pertempuran Surabaya. Tanggal berapa pertempuran tersebut diperingati sebagai Hari Pahlawan?",
+                type: "mcq",
+                options: ["10 November", "28 Oktober", "17 Agustus", "10 Desember"],
+                correct: 0,
+                explanation: "Tanggal 10 November diperingati sebagai Hari Pahlawan mengenang pertempuran Surabaya 1945."
+            },
+            {
+                id: 51,
+                category: "Latihan Soal Wasbang",
+                question: "Apabila dalam musyawarah tidak tercapai kata mufakat, langkah pengambilan keputusan yang sesuai prinsip demokrasi Pancasila adalah ....",
+                type: "mcq",
+                options: ["Voting (Pemungutan Suara)", "Aklamasi", "Veto", "Boikot"],
+                correct: 0,
+                explanation: "Pemungutan suara terbanyak (voting) dilakukan jika mufakat tidak dapat dicapai dalam musyawarah."
+            },
+            {
+                id: 52,
+                category: "Latihan Soal Wasbang",
+                question: "Sistem pertahanan dan keamanan nasional yang dianut NKRI dengan melibatkan seluruh warga negara sebagai komponen pendukung adalah ....",
+                type: "mcq",
+                options: ["Sishamkamrata", "Sishambela", "Pertahanan Pasif", "Wajib Militer Mutlak"],
+                correct: 0,
+                explanation: "Sishamkamrata (Sistem Pertahanan dan Keamanan Rakyat Semesta) melibatkan seluruh komponen bangsa."
+            },
+            {
+                id: 53,
+                category: "Latihan Soal Wasbang",
+                question: "Ki Hajar Dewantara mendirikan lembaga pendidikan Taman Siswa. Siapakah nama asli dari Ki Hajar Dewantara?",
+                type: "mcq",
+                options: ["Raden Mas Soewardi Soerjaningrat", "Raden Mas Panji Sosrokartono", "Sutan Takdir Alisjahbana", "Danudirdja Setiabudi"],
+                correct: 0,
+                explanation: "Ki Hajar Dewantara terlahir dengan nama Raden Mas Soewardi Soerjaningrat."
+            },
+            {
+                id: 54,
+                category: "Latihan Soal Wasbang",
+                question: "Lagu daerah 'Soleram' yang mengandung pesan moral dan petuah bijak untuk anak-anak berasal dari provinsi ....",
+                type: "mcq",
+                options: ["Provinsi Riau", "Provinsi Sumatera Barat", "Provinsi Aceh", "Provinsi Jambi"],
+                correct: 0,
+                explanation: "Lagu daerah Soleram merupakan lagu pengantar tidur berpetuah dari Provinsi Riau."
+            },
+            {
+                id: 55,
+                category: "Latihan Soal Wasbang",
+                question: "Sebutkan pasal dan ayat dalam UUD 1945 yang menegaskan hak dan kewajiban setiap warga negara untuk ikut serta dalam bela negara!",
+                type: "mcq",
+                options: ["Pasal 27 Ayat 3", "Pasal 30 Ayat 2", "Pasal 31 Ayat 1", "Pasal 28I"],
+                correct: 0,
+                explanation: "Pasal 27 Ayat 3 berbunyi: Setiap warga negara berhak dan wajib ikut serta dalam upaya pembelaan negara."
+            }
+        ];
+
+        // STATE VARIABLES
+        let totalQuestionsToPlay = 15;
+        let currentRound = 0; // 0 to totalQuestionsToPlay - 1
+        let timerSeconds = 15;
+        let timerInterval = null;
+        let soundEnabled = true;
+
+        // Player Data State
+        let players = [
+            {
+                id: 0,
+                name: "Pemain 1",
+                emoji: "🔴",
+                avatar: "🏃‍♂️",
+                score: 500,
+                questionList: [], // Will hold the SAME set of N questions in RANDOM order!
+                selectedOption: null,
+                currentQ: null,
+                currentShuffledOptions: [],
+                correctIndex: -1,
+                correctCount: 0,
+                wrongCount: 0,
+                color: "red"
+            },
+            {
+                id: 1,
+                name: "Pemain 2",
+                emoji: "🔵",
+                avatar: "🏃‍♀️",
+                score: 500,
+                questionList: [],
+                selectedOption: null,
+                currentQ: null,
+                currentShuffledOptions: [],
+                correctIndex: -1,
+                correctCount: 0,
+                wrongCount: 0,
+                color: "blue"
+            },
+            {
+                id: 2,
+                name: "Pemain 3",
+                emoji: "🟢",
+                avatar: "🏃",
+                score: 500,
+                questionList: [],
+                selectedOption: null,
+                currentQ: null,
+                currentShuffledOptions: [],
+                correctIndex: -1,
+                correctCount: 0,
+                wrongCount: 0,
+                color: "emerald"
+            }
+        ];
+
+        // Web Audio Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(180, now + 0.15);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'tick') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(800, now);
+                    gain.gain.setValueAtTime(0.03, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+                    osc.start(now);
+                    osc.stop(now + 0.03);
+                }
+            } catch(e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundOnIcon').classList.toggle('hidden', !soundEnabled);
+            document.getElementById('soundOffIcon').classList.toggle('hidden', soundEnabled);
+        }
+
+        function shuffleArray(arr) {
+            const array = [...arr];
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function setTotalGameQuestions(count, btnEl) {
+            totalQuestionsToPlay = count;
+            document.querySelectorAll('.q-count-btn').forEach(b => {
+                b.className = 'q-count-btn py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 hover:bg-slate-700';
+            });
+            btnEl.className = 'q-count-btn active py-2 rounded-xl bg-red-600 border border-red-500 text-xs font-bold text-white';
+        }
+
+        function startGame() {
+            playSound('click');
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            // Read Player Names
+            const p1El = document.getElementById('inputP1Name');
+            const p2El = document.getElementById('inputP2Name');
+            const p3El = document.getElementById('inputP3Name');
+
+            players[0].name = (p1El && p1El.value.trim()) ? p1El.value.trim() : "Pemain 1";
+            players[1].name = (p2El && p2El.value.trim()) ? p2El.value.trim() : "Pemain 2";
+            players[2].name = (p3El && p3El.value.trim()) ? p3El.value.trim() : "Pemain 3";
+
+            // Update UI Labels & Race Track
+            players.forEach((p, idx) => {
+                const num = idx + 1;
+                document.getElementById(`p${num}Name`).innerText = p.name;
+                document.getElementById(`trackP${num}Name`).innerText = p.name;
+            });
+
+            // 1. SELECT MASTER SET OF N QUESTIONS (Same for all 3 players!)
+            const masterSelectedQuestions = shuffleArray(questionBank).slice(0, totalQuestionsToPlay);
+
+            // 2. ASSIGN INDEPENDENTLY SHUFFLED QUESTION QUEUE TO EACH PLAYER
+            players.forEach(p => {
+                p.score = 500;
+                p.correctCount = 0;
+                p.wrongCount = 0;
+                p.selectedOption = null;
+                // Crucial requirement: EXACT SAME QUESTIONS, INDEPENDENT RANDOM SEQUENCES!
+                p.questionList = shuffleArray(masterSelectedQuestions);
+            });
+
+            updateScoreUI();
+            updateTrackUI();
+
+            currentRound = 0;
+            document.getElementById('totalRoundsNum').innerText = totalQuestionsToPlay;
+            document.getElementById('startModal').classList.add('hidden');
+            document.getElementById('winnerModal').classList.add('hidden');
+
+            loadRound();
+        }
+
+        function loadRound() {
+            clearInterval(timerInterval);
+            document.getElementById('roundResultBanner').classList.add('hidden');
+
+            if (currentRound >= totalQuestionsToPlay) {
+                finishGame();
+                return;
+            }
+
+            document.getElementById('currentRoundNum').innerText = `Ronde ${currentRound + 1}`;
+
+            // Load round question for each player from their individual randomized queue
+            players.forEach((p, pIdx) => {
+                p.selectedOption = null;
+                p.currentQ = p.questionList[currentRound]; // Guarantees all players test all N questions!
+
+                // Shuffle options for MCQ
+                if (p.currentQ.type === 'mcq') {
+                    const rawOptions = [...p.currentQ.options];
+                    const correctText = rawOptions[p.currentQ.correct];
+                    p.currentShuffledOptions = shuffleArray(rawOptions);
+                    p.correctIndex = p.currentShuffledOptions.indexOf(correctText);
+                } else {
+                    p.currentShuffledOptions = ["Benar", "Salah"];
+                    p.correctIndex = p.currentQ.correct;
+                }
+
+                const num = pIdx + 1;
+                document.getElementById(`p${num}Category`).innerText = p.currentQ.category;
+                document.getElementById(`p${num}QuestionText`).innerText = p.currentQ.question;
+                document.getElementById(`p${num}ProgressTag`).innerText = `Soal ${currentRound + 1}/${totalQuestionsToPlay}`;
+
+                // Reset Lock Overlay & Status
+                const lockOverlay = document.getElementById(`p${num}LockOverlay`);
+                lockOverlay.classList.add('hidden');
+                document.getElementById(`p${num}Explanation`).classList.add('hidden');
+
+                const statusEl = document.getElementById(`p${num}Status`);
+                statusEl.innerText = "Memilih...";
+                statusEl.className = "text-[9px] uppercase font-bold tracking-wider text-slate-400";
+            });
+
+            renderPlayerGrids();
+
+            // Start 15-second Timer
+            timerSeconds = 15;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerDisplay();
+                if (timerSeconds <= 3 && timerSeconds > 0) playSound('tick');
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    evaluateRound();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const tEl = document.getElementById('timerText');
+            const container = document.getElementById('timerContainer');
+            tEl.innerText = timerSeconds < 10 ? `0${timerSeconds}` : timerSeconds;
+
+            if (timerSeconds <= 5) {
+                container.classList.add('timer-warning', 'border-red-500');
+                tEl.className = "font-black text-xl tracking-wider text-red-500";
+            } else {
+                container.classList.remove('timer-warning', 'border-red-500');
+                tEl.className = "font-black text-xl tracking-wider text-amber-400";
+            }
+        }
+
+        function renderPlayerGrids() {
+            const playerColors = ['red', 'blue', 'emerald'];
+            const optionLabels = ['A', 'B', 'C', 'D'];
+
+            players.forEach((player, pIdx) => {
+                const gridEl = document.getElementById(`p${pIdx + 1}OptionsGrid`);
+                gridEl.innerHTML = '';
+
+                player.currentShuffledOptions.forEach((optText, oIdx) => {
+                    const btn = document.createElement('button');
+                    const label = player.currentQ.type === 'mcq' ? optionLabels[oIdx] : (oIdx === 0 ? '✓' : '✗');
+
+                    btn.className = `w-full p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-left text-white font-bold text-[11px] md:text-xs flex items-center space-x-2 touch-btn transition-all shadow`;
+                    btn.onclick = () => playerSelectOption(pIdx, oIdx);
+
+                    btn.innerHTML = `
+                        <span class="w-5 h-5 rounded-lg bg-${playerColors[pIdx]}-600/30 border border-${playerColors[pIdx]}-400 text-${playerColors[pIdx]}-300 flex items-center justify-center font-extrabold text-[10px] shrink-0">
+                            ${label}
+                        </span>
+                        <span class="leading-tight line-clamp-2 flex-1">${optText}</span>
+                    `;
+                    gridEl.appendChild(btn);
+                });
+            });
+        }
+
+        function playerSelectOption(playerIndex, optionIndex) {
+            if (players[playerIndex].selectedOption !== null) return; // Already locked
+
+            playSound('click');
+            players[playerIndex].selectedOption = optionIndex;
+
+            const playerNum = playerIndex + 1;
+            const lockOverlay = document.getElementById(`p${playerNum}LockOverlay`);
+            const badge = document.getElementById(`p${playerNum}SelectedBadge`);
+            const statusEl = document.getElementById(`p${playerNum}Status`);
+
+            lockOverlay.classList.remove('hidden');
+            badge.innerText = `Pilihan: ${players[playerIndex].currentShuffledOptions[optionIndex]}`;
+            statusEl.innerText = "Terkunci!";
+            statusEl.className = "text-[9px] uppercase font-bold tracking-wider text-emerald-400";
+
+            // If ALL 3 players answered, evaluate immediately
+            const allAnswered = players.every(p => p.selectedOption !== null);
+            if (allAnswered) {
+                clearInterval(timerInterval);
+                setTimeout(evaluateRound, 300);
+            }
+        }
+
+        function evaluateRound() {
+            clearInterval(timerInterval);
+            let anyCorrect = false;
+
+            players.forEach((p, pIdx) => {
+                const playerNum = pIdx + 1;
+                const isCorrect = (p.selectedOption === p.correctIndex);
+                const floatEl = document.getElementById(`p${playerNum}ScoreFloat`);
+                const lockOverlay = document.getElementById(`p${playerNum}LockOverlay`);
+                const titleEl = document.getElementById(`p${playerNum}OverlayTitle`);
+                const badgeEl = document.getElementById(`p${playerNum}SelectedBadge`);
+                const expEl = document.getElementById(`p${playerNum}Explanation`);
+
+                floatEl.classList.remove('hidden');
+                lockOverlay.classList.remove('hidden');
+
+                const correctText = p.currentShuffledOptions[p.correctIndex];
+
+                if (isCorrect) {
+                    anyCorrect = true;
+                    p.score += 100;
+                    p.correctCount++;
+                    floatEl.innerText = "+100";
+                    floatEl.className = "absolute -top-6 right-0 font-extrabold text-base score-float text-emerald-400";
+
+                    titleEl.innerText = "✅ JAWABAN BENAR!";
+                    titleEl.className = "font-black text-emerald-400 text-xs";
+                    badgeEl.innerText = `Jawaban: ${correctText}`;
+                } else {
+                    p.score = Math.max(0, p.score - 100);
+                    p.wrongCount++;
+                    floatEl.innerText = "-100";
+                    floatEl.className = "absolute -top-6 right-0 font-extrabold text-base score-float text-red-400";
+
+                    titleEl.innerText = "❌ JAWABAN SALAH / WAKTU HABIS";
+                    titleEl.className = "font-black text-red-400 text-xs";
+                    badgeEl.innerText = `Kunci Benar: ${correctText}`;
+                }
+
+                expEl.innerText = p.currentQ.explanation;
+                expEl.classList.remove('hidden');
+
+                setTimeout(() => floatEl.classList.add('hidden'), 1200);
+            });
+
+            if (anyCorrect) playSound('correct');
+            else playSound('wrong');
+
+            updateScoreUI();
+            updateTrackUI();
+
+            document.getElementById('roundResultBanner').classList.remove('hidden');
+        }
+
+        function updateScoreUI() {
+            document.getElementById('p1Score').innerText = players[0].score;
+            document.getElementById('p2Score').innerText = players[1].score;
+            document.getElementById('p3Score').innerText = players[2].score;
+        }
+
+        function updateTrackUI() {
+            // Maximum potential score = 500 initial + (totalQuestionsToPlay * 100)
+            const maxScore = 500 + (totalQuestionsToPlay * 100);
+
+            players.forEach((p, idx) => {
+                const num = idx + 1;
+                // Calculate percentage progress along the track
+                const percentage = Math.min(92, Math.max(2, Math.round((p.score / maxScore) * 100)));
+
+                const trackBar = document.getElementById(`p${num}TrackBar`);
+                const runner = document.getElementById(`p${num}Runner`);
+
+                trackBar.style.width = `${percentage}%`;
+                runner.style.left = `${percentage}%`;
+            });
+        }
+
+        function nextRound() {
+            playSound('click');
+            currentRound++;
+            loadRound();
+        }
+
+        function finishGame() {
+            playSound('correct');
+
+            try {
+                confetti({
+                    particleCount: 140,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+            } catch(e){}
+
+            const sorted = [...players].sort((a, b) => b.score - a.score);
+
+            const podiumContainer = document.getElementById('podiumContainer');
+            podiumContainer.innerHTML = '';
+
+            const displayOrder = [sorted[1], sorted[0], sorted[2]];
+            const ranks = [2, 1, 3];
+            const heights = ["h-28", "h-40", "h-20"];
+            const badges = ["🥈 JUARA 2", "🥇 JUARA 1", "🥉 JUARA 3"];
+            const colors = [
+                "from-slate-600 to-slate-800 border-slate-500",
+                "from-amber-500 to-yellow-700 border-amber-400",
+                "from-amber-800 to-amber-950 border-amber-700"
+            ];
+
+            displayOrder.forEach((player, idx) => {
+                const pBox = document.createElement('div');
+                pBox.className = `flex flex-col items-center`;
+                pBox.innerHTML = `
+                    <div class="mb-1 text-center">
+                        <span class="text-xs font-bold text-slate-300 block">${player.name}</span>
+                        <span class="text-sm md:text-base font-black text-amber-300">${player.score} Poin</span>
+                    </div>
+                    <div class="w-full ${heights[idx]} bg-gradient-to-t ${colors[idx]} border-t-2 rounded-t-2xl flex flex-col items-center justify-center p-2 shadow-lg">
+                        <span class="text-[10px] font-black text-white">${badges[idx]}</span>
+                        <span class="text-2xl font-black text-white/30">#${ranks[idx]}</span>
+                    </div>
+                `;
+                podiumContainer.appendChild(pBox);
+            });
+
+            const statsContent = document.getElementById('statsContent');
+            statsContent.innerHTML = '';
+            sorted.forEach(p => {
+                const totalPlayed = p.correctCount + p.wrongCount;
+                const accuracy = totalPlayed > 0 ? Math.round((p.correctCount / totalPlayed) * 100) : 0;
+                statsContent.innerHTML += `
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/80 border border-slate-700">
+                        <span class="font-bold text-white text-xs">${p.name}</span>
+                        <div class="flex space-x-3 text-xs text-slate-300">
+                            <span>Benar: <strong class="text-emerald-400">${p.correctCount}</strong></span>
+                            <span>Salah: <strong class="text-red-400">${p.wrongCount}</strong></span>
+                            <span>Akurasi: <strong class="text-amber-400">${accuracy}%</strong></span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('winnerModal').classList.remove('hidden');
+        }
+
+        function openSettingsModal() {
+            playSound('click');
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            playSound('click');
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function resetCurrentGame() {
+            closeSettingsModal();
+            startGame();
+        }
+
+        function returnToStartMenu() {
+            clearInterval(timerInterval);
+            closeSettingsModal();
+            document.getElementById('winnerModal').classList.add('hidden');
+            document.getElementById('startModal').classList.remove('hidden');
+        }
+
+        window.onload = function() {
+            document.getElementById('startModal').classList.remove('hidden');
+        };
+    </script>
+</body>
+</html>
